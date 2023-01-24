@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using SandcastleToDocFx;
 using SandcastleToDocFx.Writers;
@@ -41,7 +43,6 @@ namespace SandcastleToDocFx.Visitors
                     case ElementType.Content:
                         var content = new ContentElement(item);
                         content.Accept(this);
-                        MarkdownWriter.WriteHeading2(item.Value);
                         break;
                     default:
                         break;
@@ -156,54 +157,59 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(RowElement row)
         {
-            foreach (var entry in row.Element.Elements())
+            MarkdownWriter.StartTableRow();
+
+            var entries = row.Element.Elements().ToArray();
+            for (int i = 0; i < entries.Count(); i++)
             {
-                Utilities.ParseEnum(entry.Name.LocalName, out ElementType type);
+                Utilities.ParseEnum(entries[i].Name.LocalName, out ElementType type);
 
                 switch (type)
                 {
                     case ElementType.Entry:
-                        var element = new EntryElement(entry);
+                        var element = new EntryElement(entries[i]);
                         element.Accept(this);
                         break;
                     default:
                         break;
+                }
 
+                if ( i + 1 < entries.Count() ) {
+                    MarkdownWriter.AddTableRowSeparator();
                 }
             }
+            
+            MarkdownWriter.EndTableRow();
+
         }
 
         public override void Visit(EntryElement entry)
         {
-            List<string> entries = new();
-
-            var element = entry.Element.Elements().FirstOrDefault();
-                
-            Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
-            switch (type)
+            if ( entry.Element.HasElements )
             {
-                case ElementType.Para:
-                    entries.Add(element.Value.Trim());
-                    break;
-                case ElementType.Link:
-                    Console.WriteLine("Hi");
-                    Console.WriteLine(element.Value);
-                    Console.WriteLine("Hi");
-                    entries.Add(element.Attribute("href").Value.Trim());
-                    break;
-                default:
-                    break;
+                var element = entry.Element.Elements().First();
 
+                Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
+                switch (type)
+                {    
+                    case ElementType.Link:
+                        var link = new LinkElement(element);
+                        link.Accept(this);
+                        break;
+                    case ElementType.Para:
+                        MamlElement para = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                        para.Accept(this);
+                        break;
+                    default:
+                        
+                        break;
+                }
             }
-            
-            MarkdownWriter.AppendTableRow(entries.ToArray());
-
-            //MarkdownWriter.AppendEntries(entries.ToArray());
         }
 
         public override void Visit(LinkElement link)
         {
-            Console.WriteLine(link.Element.Attribute("href").Value);
+            MarkdownWriter.WriteXref(link.Element.Attributes().SingleOrDefault( a => a.Name.LocalName == "href")!.Value);
         }
 
         public override void Visit(ParaElement para)
@@ -211,77 +217,171 @@ namespace SandcastleToDocFx.Visitors
             MarkdownWriter.WriteParagraph(para.Element.Value);
 
             // Para contains only text.
-            if (!para.Element.Elements().Any())
+            if (!para.Element.Elements().Any() && para.Element.Parent!.Name.LocalName != "entry" )
             {
                 MarkdownWriter.WriteLine();
                 return;
             }
-
-            // Para contains an element (and possibly even text).
-
-            foreach (var paraElement in para.Element.Elements())
-            {
-                Utilities.ParseEnum(paraElement.Name.LocalName, out ElementType type);
-            }
-
         }
         
         public override void Visit(RichParaElement para)
         {
-            // Para contains only text.
-            if (!para.Element.Elements().Any())
-            {
-                MarkdownWriter.WriteParagraph(para.Element.Value);
-                return;
-            }
-
             // Para contains an element (and possibly even text).
-
-            foreach (var paraElement in para.Element.Elements())
+            foreach (var node in para.Element.Nodes())
             {
-                Utilities.ParseEnum(paraElement.Name.LocalName, out ElementType type);
+                switch (node.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        var elementFromNode = XElement.Parse(node.ToString());
 
-                
+                        Utilities.ParseEnum(elementFromNode.Name.LocalName, out ElementType type);
+                        switch (type)
+                        {
+                            case ElementType.Link:
+                                var link = new LinkElement(elementFromNode);
+                                link.Accept(this);
+                                break;
+                            case ElementType.CodeInline:
+                            case ElementType.LanguageKeyword:
+                                var codeInline = new CodeInlineElement(elementFromNode);
+                                codeInline.Accept(this);
+                                break;
+                            case ElementType.ExternalLink:
+                                var externalLink = new ExternalLinkElement(elementFromNode);
+                                externalLink.Accept(this);
+                                break;
+                            case ElementType.LegacyBold:
+                                var bold = new CodeInlineElement(elementFromNode);
+                                bold.Accept(this);
+                                break;
+                            case ElementType.LegacyItalic:
+                                var italic = new CodeInlineElement(elementFromNode);
+                                italic.Accept(this);
+                                break;
+                            case ElementType.CodeEntityReference:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.LocalUri:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.Literal:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.Application:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.Ui:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.Markup:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.Superscript:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.NewTerm:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            case ElementType.ParameterReference:
+                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                break;
+                            default:
+                                Console.WriteLine(elementFromNode.Value);
+                                throw new NotSupportedException($"Element type {type} not supported for <RichPara>.");
+                                break;
+                        }
+                        break;
+                    case XmlNodeType.Text:
+                        MarkdownWriter.Append(node.ToString());
+                        break;
+                    default:
+                        throw new NotSupportedException($"Node type {node.NodeType} not supported for <RichPara>.");
+                }
+                MarkdownWriter.Append(' ');
+            }
+        }
+
+        public override void Visit(ExternalLinkElement externalLink)
+        {
+            string? linkText = null;
+            string? linkUri = null;
+            
+            foreach (var linkElement in externalLink.Element.Elements())
+            {
+                switch (linkElement.Name.LocalName)
+                {
+                    case "linkText":
+                        linkText = linkElement.Value;
+                        break;
+                    case "linkUri":
+                        linkUri = linkElement.Value;
+                        break;
+                }
             }
 
+            if (linkText != null && linkUri != null)
+            {
+                MarkdownWriter.WriteLink(linkText, linkUri);
+
+            }
+        }
+
+        public override void Visit(CodeInlineElement codeInline)
+        {
+            MarkdownWriter.AppendCodeInline(codeInline.Element.Value);
+        }
+
+        public override void Visit(LegacyBoldElement bold)
+        {
+            MarkdownWriter.WriteTextBold(bold.Element.Value);
+        }
+        public override void Visit(LegacyItalicElement bold)
+        {
+            MarkdownWriter.WriteTextItalic(bold.Element.Value);
         }
 
         public override void Visit(ListElement list)
         {
+            // TODO: Ordered list
             var bulletList = list.Element.Attribute("class")!.Value == "bullet";
 
-            foreach (var listItemType in list.Element.Elements().Elements())
+            foreach (var listItem in list.Element.Elements())
             {
-                Utilities.ParseEnum(listItemType.Name.LocalName, out ElementType type);
+                Utilities.ParseEnum(listItem.Name.LocalName, out ElementType type);
+
+                switch (type)
+                {
+                    case ElementType.ListItem:
+                        MarkdownWriter.StartUnorderedListItem();
+                        var listItemElement = new ListItemElement(listItem);
+                        listItemElement.Accept(this);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <list>.");
+                }
+
+                MarkdownWriter.WriteLine();
+            }
+        }
+
+        public override void Visit(ListItemElement listItem)
+        {
+            foreach (var item in listItem.Element.Elements())
+            {
+                Utilities.ParseEnum(item.Name.LocalName, out ElementType type);
 
                 switch (type)
                 {
                     case ElementType.Para:
-                        MamlElement para = listItemType.HasElements ? new RichParaElement(listItemType) : new ParaElement(listItemType);
+                        MamlElement para = item.HasElements ? new RichParaElement(item) : new ParaElement(item);
                         para.Accept(this);
                         break;
                     default:
-                        Console.WriteLine(listItemType.Name.LocalName +" not supported in listElement");
+                        throw new NotSupportedException($"Element type {type} not supported for <listItem>.");
                         break;
+                }
 
-                }
-            }
-            var listItems = list.Element.Elements().Select( item => item.Value ).ToArray();
-            if (bulletList)
-            {
-                foreach (var listItem in list.Element.Elements().Elements())
-                {
-                    MarkdownWriter.WriteUnorderedListItem(listItem.ToString());
-                }
-            }
-            else
-            {
-                var position = 1;
-                foreach (var listItem in list.Element.Elements())
-                {
-                    MarkdownWriter.WriteOrderedListItem(position, listItem.ToString());
-                    position++;
-                }
+                MarkdownWriter.WriteLine();
             }
         }
     }

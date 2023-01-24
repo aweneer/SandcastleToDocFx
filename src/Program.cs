@@ -52,8 +52,9 @@ namespace SandcastleToDocFx
             
             foreach (var file in files)
             {
-                Console.WriteLine("===");
+                //Console.WriteLine("===");
                 doc3 = XDocument.Load(file);
+                Console.WriteLine(file);
                 var fileName = doc3.Root.Attribute("id").Value;
                 foreach (var element in doc3.Root.Elements().FirstOrDefault().Elements())
                 {
@@ -75,14 +76,14 @@ namespace SandcastleToDocFx
                         //     var related = new RelatedTopicsElement(element);
                         //     related.Accept(visitor);
                         //     break;
-                        // case ElementType.Section:
-                        //     var section = new SectionElement(element);
-                        //     section.Accept(visitor);
-                        //     break;
+                        case ElementType.Section:
+                            var section = new SectionElement(element);
+                            section.Accept(visitor);
+                            break;
                         // case ElementType.Summary:
                         //     break;
                         default:
-                            Console.WriteLine(element.Name.LocalName);
+                            //Console.WriteLine(element.Name.LocalName);
                             // throw new NotImplementedException(
                             //     $"Parsing of element <{element.Name}> as first-level element is not implemented .");
                             break;

@@ -27,9 +27,19 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine(value);
         }
 
+        public static void Append(char character)
+        {
+            StringBuilder.Append(character);
+        }
+
         public static void WriteParagraph(string value)
         {
-            StringBuilder.AppendLine(value.Trim());
+            StringBuilder.Append(value.Trim());
+        }
+
+        public static void Append(string value)
+        {
+            StringBuilder.Append(value.Trim());
         }
 
         public static void WriteHeading1(string value)
@@ -51,12 +61,12 @@ namespace SandcastleToDocFx.Writers
         }
         public static void WriteTextBold(string value)
         {
-            StringBuilder.AppendLine($"**{value}**");
+            StringBuilder.Append($"**{value}**");
         }
 
         public static void WriteTextItalic(string value)
         {
-            StringBuilder.AppendLine($"*{value}*");
+            StringBuilder.Append($"*{value}*");
         }
 
         public static void WriteBlockQuote(string value)
@@ -64,11 +74,20 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"> {value}");
         }
 
+        public static void AppendCodeInline(string value)
+        {
+            StringBuilder.Append($"`{value}`");
+        }
+
         public static void WriteOrderedListItem(int position, string value)
         {
             StringBuilder.AppendLine($"{position}. {value}");
         }
 
+        public static void StartUnorderedListItem()
+        {
+            StringBuilder.Append("* ");
+        }
         public static void WriteUnorderedListItem(string value)
         {
             StringBuilder.AppendLine($"* {value}");
@@ -84,9 +103,14 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"---");
         }
 
+        public static void WriteXref(string value)
+        {
+            StringBuilder.Append($"<xref:{value}>");
+        }
+        
         public static void WriteLink(string value, string link)
         {
-            StringBuilder.AppendLine($"[{value}]({link})");
+            StringBuilder.Append($"[{value}]({link})");
         }
         public static void WriteLinkWithTitle(string value, string link, string title)
         {
@@ -148,6 +172,21 @@ namespace SandcastleToDocFx.Writers
             }
 
             StringBuilder.Append(" |" + Environment.NewLine);
+        }
+
+        public static void StartTableRow()
+        {
+            StringBuilder.Append("| ");
+        }
+        
+        public static void AddTableRowSeparator()
+        {
+            StringBuilder.Append(" | ");
+        }
+        
+        public static void EndTableRow()
+        {
+            StringBuilder.AppendLine(" |");
         }
 
         public static void AppendEntries(string[] entries)

@@ -24,7 +24,15 @@ namespace SandcastleToDocFx.Visitors
         public abstract void Visit(EntryElement entry);
         public abstract void Visit(LinkElement link);
         public abstract void Visit(ListElement link);
+        public abstract void Visit(ListItemElement link);
         public abstract void Visit(ParaElement para);
-        public abstract void Visit(RichParaElement para);
+        public abstract void Visit(RichParaElement richPara);
+        
+        public abstract void Visit(CodeInlineElement codeInline);
+        public abstract void Visit(LegacyBoldElement bold);
+        public abstract void Visit(LegacyItalicElement italic);
+        public abstract void Visit(ExternalLinkElement externalLink);
+
+
     }
 }

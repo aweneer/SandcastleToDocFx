@@ -161,4 +161,54 @@ namespace SandcastleToDocFx.Sandcastle
             visitor.Visit(this);
         }
     }
+
+    public class ListItemElement : MamlElement
+    {
+        public ListItemElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class CodeInlineElement : MamlElement
+    {
+        public CodeInlineElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class LegacyBoldElement : MamlElement
+    {
+        public LegacyBoldElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class LegacyItalicElement : MamlElement
+    {
+        public LegacyItalicElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class ExternalLinkElement : MamlElement
+    {
+        public ExternalLinkElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
 }
