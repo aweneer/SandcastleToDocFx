@@ -10,19 +10,26 @@ namespace SandcastleToDocFx.Writers
     public static class MarkdownWriter
     {
         public static StringBuilder StringBuilder = new();
-        public static async void Write()
+        public static async void WriteFile(string fileName)
         {
-            using (StreamWriter writer = File.CreateText(@"C:\Users\JanHlavac\Desktop\test.md"))
+            var file = Path.Combine("C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport", $"{fileName}.md");
+            Console.WriteLine("writing "+ file);
+            using (StreamWriter writer = File.CreateText(file))
             {
                 writer.Write(StringBuilder.ToString());
+                StringBuilder.Clear();
                 writer.Flush(); // TODO: Get rid of this logic.
             }
         }
 
+        public static void WriteLine(string? value = null)
+        {
+            StringBuilder.AppendLine(value);
+        }
+
         public static void WriteParagraph(string value)
         {
-            StringBuilder.AppendLine();
-            StringBuilder.AppendLine($"{value.Trim()}");
+            StringBuilder.AppendLine(value.Trim());
         }
 
         public static void WriteHeading1(string value)
@@ -57,20 +64,14 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"> {value}");
         }
 
-        public static void WriteOrderedList(string[] values)
+        public static void WriteOrderedListItem(int position, string value)
         {
-            for (int i = 0; i < values.Length; i++)
-            {
-                StringBuilder.AppendLine($"{i+1}. {values[i]}");
-            }
+            StringBuilder.AppendLine($"{position}. {value}");
         }
 
-        public static void WriteUnorderedList(string[] values)
+        public static void WriteUnorderedListItem(string value)
         {
-            foreach (var value in values)
-            {
-                StringBuilder.AppendLine($"- {value}");
-            }
+            StringBuilder.AppendLine($"* {value}");
         }
 
         public static void WriteCode(string value)
@@ -94,8 +95,11 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendTableHeader(string[] values)
         {
+            // Header
             int[] headerValuesLengths = new int[values.Length];
+            
             StringBuilder.Append("| ");
+            
             for (int i = 0; i < values.Length; i++)
             {
                 var value = values[i];
@@ -107,18 +111,48 @@ namespace SandcastleToDocFx.Writers
                 }
 
             }
-            StringBuilder.Append(" |"+Environment.NewLine);
 
+            StringBuilder.Append(" |" + Environment.NewLine);
+
+            // Header separator
             foreach (var length in headerValuesLengths)
             {
                 StringBuilder.Append("|-");
-                for (int i = 0; i < length; i++)
+                for (int j = 0; j < length; j++)
                 {
-                    StringBuilder.Append("-");
+                    StringBuilder.Append('-');
                 }
-                StringBuilder.Append("-|");
+                StringBuilder.Append('-');
             }
+
+            StringBuilder.AppendLine("|");
         }
 
+        public static void AppendTableRow(string[] values)
+        {
+            // Header
+            int[] headerValuesLengths = new int[values.Length];
+            
+            StringBuilder.Append("| ");
+            
+            for (int i = 0; i < values.Length; i++)
+            {
+                var value = values[i];
+                headerValuesLengths[i] = value.Length;
+                StringBuilder.Append(value);
+                if ( i + 1 < values.Length )
+                {
+                    StringBuilder.Append(" | ");
+                }
+
+            }
+
+            StringBuilder.Append(" |" + Environment.NewLine);
+        }
+
+        public static void AppendEntries(string[] entries)
+        {
+            
+        }
     }
 }

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandcastleToDocFx", "SandcastleToDocFx\SandcastleToDocFx.csproj", "{8218D138-7F94-4596-B2D5-7D2A7F9C8CA9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandcastleToDocFx", "src\SandcastleToDocFx.csproj", "{0C26D82A-3FC3-4992-92BB-1CB90F0185EB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D24B03C1-0E8B-4117-A50F-8172885DDC2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandcastleToDocFx.Tests", "tests\SandcastleToDocFx.Tests\SandcastleToDocFx.Tests.csproj", "{F5BD0AD3-F533-4806-86BA-50C5601BB997}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +15,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8218D138-7F94-4596-B2D5-7D2A7F9C8CA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8218D138-7F94-4596-B2D5-7D2A7F9C8CA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8218D138-7F94-4596-B2D5-7D2A7F9C8CA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8218D138-7F94-4596-B2D5-7D2A7F9C8CA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C26D82A-3FC3-4992-92BB-1CB90F0185EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C26D82A-3FC3-4992-92BB-1CB90F0185EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C26D82A-3FC3-4992-92BB-1CB90F0185EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C26D82A-3FC3-4992-92BB-1CB90F0185EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5BD0AD3-F533-4806-86BA-50C5601BB997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5BD0AD3-F533-4806-86BA-50C5601BB997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5BD0AD3-F533-4806-86BA-50C5601BB997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5BD0AD3-F533-4806-86BA-50C5601BB997}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7DD509E9-04E9-436C-B131-09BC63FDCBF0}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F5BD0AD3-F533-4806-86BA-50C5601BB997} = {D24B03C1-0E8B-4117-A50F-8172885DDC2A}
 	EndGlobalSection
 EndGlobal

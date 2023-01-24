@@ -13,7 +13,6 @@ namespace SandcastleToDocFx
         {
             if (!Enum.TryParse(elementName, true, out parsedElementName))
             {
-
                 return false;
             }
 

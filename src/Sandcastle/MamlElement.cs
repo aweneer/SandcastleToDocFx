@@ -8,6 +8,30 @@ using SandcastleToDocFx.Visitors;
 
 namespace SandcastleToDocFx.Sandcastle
 {
+    public abstract class MamlElement
+    {
+        public XElement Element { get; set; }
+
+        public MamlElement(XElement element)
+        {
+            Element = element;
+        }
+
+        public abstract void Accept(Visitor visitor);
+    }
+    
+    // Concrete elements.
+
+    public class AlertElement : MamlElement
+    {
+        public AlertElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
     public class TopicElement : MamlElement
     {
         public TopicElement(XElement element) : base(element) { }
@@ -17,6 +41,8 @@ namespace SandcastleToDocFx.Sandcastle
             visitor.Visit(this);
         }
     }
+    
+    
 
     public class IntroductionElement : MamlElement
     {
@@ -25,7 +51,6 @@ namespace SandcastleToDocFx.Sandcastle
         public override void Accept(Visitor visitor)
         {
             visitor.Visit(this);
-            // TODO Check for <para> and build the text
         }
     }
     public class SectionElement : MamlElement
@@ -44,7 +69,6 @@ namespace SandcastleToDocFx.Sandcastle
         public override void Accept(Visitor visitor)
         {
             visitor.Visit(this);
-            // TODO Check for <para> and build the text
         }
     }
 
@@ -82,6 +106,56 @@ namespace SandcastleToDocFx.Sandcastle
     {
         public TableHeaderElement(XElement element) : base(element) { }
 
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class EntryElement : MamlElement
+    {
+        public EntryElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class ParaElement : MamlElement
+    {
+        public ParaElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class RichParaElement : MamlElement
+    {
+        public RichParaElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
+    public class LinkElement : MamlElement
+    {
+        public LinkElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
+    public class ListElement : MamlElement
+    {
+        public ListElement(XElement element) : base(element) { }
+        
         public override void Accept(Visitor visitor)
         {
             visitor.Visit(this);
