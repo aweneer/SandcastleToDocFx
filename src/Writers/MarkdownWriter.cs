@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace SandcastleToDocFx.Writers
         public static async void WriteFile(string fileName)
         {
             var file = Path.Combine("C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport", $"{fileName}.md");
-            Console.WriteLine("writing "+ file);
+
             using (StreamWriter writer = File.CreateText(file))
             {
                 writer.Write(StringBuilder.ToString());
@@ -27,6 +28,10 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine(value);
         }
 
+        public static void AppendCode(string code)
+        {
+            StringBuilder.AppendLine("HERE SHOULD BE CODE, BUT IT IS NOT, BECAUSE IT's NOT WORKING YET");
+        }
         public static void Append(char character)
         {
             StringBuilder.Append(character);
@@ -84,6 +89,13 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"{position}. {value}");
         }
 
+        public static void AppendAlert(string? alertType = null)
+        {
+            MarkdownWriter.WriteLine();
+            StringBuilder.AppendLine($">[!{alertType?.ToUpperInvariant()}]");
+            StringBuilder.Append($">");
+        }
+
         public static void StartUnorderedListItem()
         {
             StringBuilder.Append("* ");
@@ -93,9 +105,25 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"* {value}");
         }
 
+        public static void WriteCodeFromSourceFile(string file, string language)
+        {
+            var code = File.ReadAllText(file);
+            
+            StringBuilder.AppendLine(@$"```{language}
+{code}
+```");
+        }
+        
         public static void WriteCode(string value)
         {
             StringBuilder.AppendLine($"`{value}`");
+        }
+
+        public static void AppendImage(string imageReference, string? imageName = null)
+        {
+            // TODO: Fix pathing towards the image, reference is only name of the file without extension.
+            imageName = imageName ?? "Image";
+            StringBuilder.AppendLine($"![{imageName}]({imageReference})");
         }
 
         public static void WriteHorizontalRule(string value)

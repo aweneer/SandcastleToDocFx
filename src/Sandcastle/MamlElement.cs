@@ -32,6 +32,16 @@ namespace SandcastleToDocFx.Sandcastle
         }
     }
     
+    public class CaptionElement : MamlElement
+    {
+        public CaptionElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
     public class TopicElement : MamlElement
     {
         public TopicElement(XElement element) : base(element) { }
@@ -206,6 +216,66 @@ namespace SandcastleToDocFx.Sandcastle
     {
         public ExternalLinkElement(XElement element) : base(element) { }
         
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class CodeElement : MamlElement
+    {
+        public CodeElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class ProcedureElement : MamlElement
+    {
+        public ProcedureElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
+    public class MediaLinkElement : MamlElement
+    {
+        public MediaLinkElement(XElement element) : base(element) { }
+        
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class ImageElement : MamlElement
+    {
+        public ImageElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class TitleElement : MamlElement
+    {
+        public TitleElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+    
+    public class CommandElement : MamlElement
+    {
+        public CommandElement(XElement element) : base(element) { }
+
         public override void Accept(Visitor visitor)
         {
             visitor.Visit(this);

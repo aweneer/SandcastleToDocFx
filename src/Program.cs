@@ -1,6 +1,7 @@
 ﻿using SandcastleToDocFx.Sandcastle;
 using SandcastleToDocFx.Visitors;
 using SandcastleToDocFx.Writers;
+using Spectre.Cli;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,8 +15,13 @@ namespace SandcastleToDocFx
 {
     public class Program
     {
+        public static string SourceCodeDirectory;
         static void Main(string[] args)
         {
+            // TODO: Finish commandline app.
+            //var app = new CommandApp();
+            //app.Run(args);
+
             // TODO: Process args
 
             // TODO: Foreach *.aml file in args[1]
@@ -28,28 +34,9 @@ namespace SandcastleToDocFx
             var doc2 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Logging\\Console.aml");
             var doc3 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Introduction\\Introduction.aml");
 
+            SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";
             var files = Directory.GetFiles("C:\\src\\PostSharp.Documentation\\Source", "*.aml", SearchOption.AllDirectories);
-            HashSet<string> names = new HashSet<string>();
-
-            // foreach (var file in files)
-            // {
-            //     var xdoc = XDocument.Load(file);
-            //     foreach (var el in xdoc.Root.Descendants())
-            //     {
-            //         names.Add(el.Name.LocalName);
-            //     }
-            // }
-
-            var x = names.ToImmutableSortedSet();
-            
-            foreach (var n in x)
-            {
-                Console.WriteLine(n);
-            }
-
-
-            var singleArry = new List<string>() {  "" };
-            
+            files = files.ToArray();
             foreach (var file in files)
             {
                 //Console.WriteLine("===");
