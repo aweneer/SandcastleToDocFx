@@ -28,7 +28,7 @@ namespace SandcastleToDocFx.Writers
             }
         }
 
-        public static void WriteLine(string? value = null)
+        public static void AppendLine(string? value = null)
         {
             StringBuilder.AppendLine(value);
         }
@@ -69,9 +69,14 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine();
             StringBuilder.AppendLine($"### {value}");
         }
-        public static void WriteTextBold(string value)
+        public static void WriteTextBold(string value, bool lineBreak = false)
         {
             StringBuilder.Append($"**{value}**");
+
+            if (lineBreak)
+            {
+                StringBuilder.AppendLine("\n");
+            }
         }
 
         public static void WriteTextItalic(string value)
@@ -96,7 +101,7 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendAlert(string? alertType = null)
         {
-            MarkdownWriter.WriteLine();
+            MarkdownWriter.AppendLine();
             StringBuilder.AppendLine($">[!{alertType?.ToUpperInvariant()}]");
             StringBuilder.Append(">");
         }
@@ -141,11 +146,12 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"`{value}`");
         }
 
-        public static void AppendImage(string imageReference, string? imageName = null)
+        public static void AppendImage(
+            string imageReference,
+            string imageName = "Image",
+            string imageExtension = ".png" )
         {
-            // TODO: Fix pathing towards the image, reference is only name of the file without extension.
-            imageName = imageName ?? "Image";
-            StringBuilder.AppendLine($"![{imageName}]({imageReference})");
+            StringBuilder.AppendLine($"![{imageName}]({imageReference}{imageExtension})");
         }
 
         public static void AppendCodeEntityReference(string codeEntityReference)

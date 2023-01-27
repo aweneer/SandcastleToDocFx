@@ -78,11 +78,15 @@ namespace SandcastleToDocFx
                     switch (parsedElementName)
                     {
                         case ElementType.Glossary:
-                            // Not supported.
+                            // Currently not supported.
                             break;
                         case ElementType.Introduction:
                             var introduction = new IntroductionElement(element);
                             introduction.Accept(visitor);
+                            break;
+                        case ElementType.Procedure:
+                            var procedure = new ProcedureElement(element);
+                            procedure.Accept(visitor);
                             break;
                         case ElementType.RelatedTopics:
                             var related = new RelatedTopicsElement(element);
@@ -92,13 +96,12 @@ namespace SandcastleToDocFx
                             var section = new SectionElement(element);
                             section.Accept(visitor);
                             break;
-                        // case ElementType.Summary:
-                        //     break;
-                        default:
-                            //Console.WriteLine(element.Name.LocalName);
-                            // throw new NotImplementedException(
-                            //     $"Parsing of element <{element.Name}> as first-level element is not implemented .");
+                        case ElementType.Summary:
+                            var summary = new ParaElement(element);
+                            summary.Accept(visitor);
                             break;
+                        default:
+                            throw new NotImplementedException($"Parsing of <{element.Name.LocalName}> element is not implemented.");
                     }
 
                 }
