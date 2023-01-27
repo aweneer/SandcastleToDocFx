@@ -18,5 +18,10 @@ namespace SandcastleToDocFx
 
             return true;
         }
+
+        public static string NormalizeTextSpaces(string originalText)
+        {
+            return string.Join(" ", originalText.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries).ToList().Select(word => word));
+        }
     }
 }

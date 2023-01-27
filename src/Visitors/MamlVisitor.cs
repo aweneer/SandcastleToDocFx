@@ -45,6 +45,8 @@ namespace SandcastleToDocFx.Visitors
 
                 mamlElement.Accept(this);
             }
+
+            MarkdownWriter.AppendLine();
         }
 
         public override void Visit(TopicElement topic)
@@ -162,55 +164,52 @@ namespace SandcastleToDocFx.Visitors
             {
                 MarkdownWriter.WriteHeading2("See Also");
             }
-
-            var referenceAppended = false;
-            var otherResourcesAppended = false;
             
             foreach (var element in relatedTopics.Element.Elements())
             {
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
-                MamlElement? mamlElementType = null;
+                MamlElement? mamlElementType;
 
                 switch (type)
                 {
                     case ElementType.CodeEntityReference:
-                        // TODO Remove code duplication.
-                        if (!referenceAppended)
-                        {
-                            MarkdownWriter.WriteTextBold("Reference", true);
-                            referenceAppended = true;
-                        }
-                        mamlElementType = new CodeEntityReferenceElement(element);
+                        // TODO: naming of these 3 methods.
+                        WriteRelatedTopicsReferenceHeader(ref relatedTopics);
+                        mamlElementType = new CodeEntityReferenceElement(element, true);
                         break;
                     case ElementType.ExternalLink:
-                        // TODO 1/2 Remove code duplication.
-                        if (!otherResourcesAppended)
-                        {
-                            MarkdownWriter.WriteTextBold("Other Resources", true);
-                            referenceAppended = true;
-                        }
-                        mamlElementType = new ExternalLinkElement(element);
+                        WriteRelatedTopicsResourcesHeader(ref relatedTopics);
+                        mamlElementType = new ExternalLinkElement(element, true);
                         break;
                     case ElementType.Link:
-                        // TODO 2/2 Remove code duplication.
-
-                        if (!otherResourcesAppended)
-                        {
-                            MarkdownWriter.WriteTextBold("Other Resources", true);
-                            referenceAppended = true;
-                        }
-                        mamlElementType = new LinkElement(element);
+                        WriteRelatedTopicsResourcesHeader(ref relatedTopics);
+                        mamlElementType = new LinkElement(element, true);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <RelatedTopics>.");
-                        break;
                 }
 
                 mamlElementType?.Accept(this);
                 MarkdownWriter.AppendLine();
-                MarkdownWriter.AppendLine();
+            }
+        }
 
+        public void WriteRelatedTopicsReferenceHeader( ref RelatedTopicsElement relatedTopics )
+        {
+            if (!relatedTopics.IsReferenceAppended)
+            {
+                MarkdownWriter.WriteTextBold("Reference", true);
+                relatedTopics.IsReferenceAppended = true;
+            }
+        }
+        
+        public void WriteRelatedTopicsResourcesHeader(ref RelatedTopicsElement relatedTopics)
+        {
+            if (!relatedTopics.IsOtherResourcesAppended)
+            {
+                MarkdownWriter.WriteTextBold("Other Resources", true);
+                relatedTopics.IsOtherResourcesAppended = true;
             }
         }
 
@@ -252,7 +251,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new StepsElement(element);
                         break;
                     case ElementType.Table:
-                        mamlElementType = new TableElement(element);
+                        mamlElementType = new TableElement(element, true);
                         break;
                     case ElementType.Title:
                         mamlElementType = new TitleElement(element);
@@ -475,7 +474,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new LinkElement(element);
                         break;
                     case ElementType.Para:
-                        mamlElementType = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                        mamlElementType = element.HasElements ? new RichParaElement(element, true) : new ParaElement(element);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <Entry>.");
@@ -493,19 +492,19 @@ namespace SandcastleToDocFx.Visitors
         public override void Visit(ParaElement para)
         {
             // Para contains only text, so we add a space behind.
-            if (!para.Element.Elements().Any())
+            if (!para.Element.HasElements)
             {
-                MarkdownWriter.WriteParagraph(para.Element.Value);
+                var normalizedText = Utilities.NormalizeTextSpaces(para.Element.Value);
+                MarkdownWriter.WriteParagraph(normalizedText);
 
                 if (para.Element.Parent!.Name.LocalName != "entry")
                 {
-                    MarkdownWriter.AppendLine();
-                    MarkdownWriter.AppendLine();
+                    MarkdownWriter.AppendLine(Environment.NewLine);
                 }
             }
-            
+
             // Para contains something more.
-            if (para.Element.Elements().Any())
+            if (para.Element.HasElements)
             {
                 foreach (var element in para.Element.Elements())
                 {
@@ -606,7 +605,8 @@ namespace SandcastleToDocFx.Visitors
 
                         break;
                     case XmlNodeType.Text:
-                        MarkdownWriter.Append(node.ToString());
+                        var normalizedText = Utilities.NormalizeTextSpaces(node.ToString());
+                        MarkdownWriter.Append(normalizedText);
                         break;
                     default:
                         throw new NotSupportedException($"Node type {node.NodeType} not supported for <RichPara>.");
@@ -618,7 +618,7 @@ namespace SandcastleToDocFx.Visitors
                 }
             }
 
-            if (nodesCount > 1)
+            if (!para.IsTableElement && nodesCount > 1 )
             {
                 MarkdownWriter.AppendLine("\n");
             }
@@ -693,7 +693,6 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(ListElement list)
         {
-            // TODO: Ordered list
             var bulletList = list.Element.Attribute("class")!.Value == "bullet";
 
             foreach (var listItem in list.Element.Elements())
@@ -704,14 +703,12 @@ namespace SandcastleToDocFx.Visitors
                 {
                     case ElementType.ListItem:
                         MarkdownWriter.StartUnorderedListItem();
-                        var listItemElement = new ListItemElement(listItem);
+                        var listItemElement = new ListItemElement(listItem, true);
                         listItemElement.Accept(this);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <list>.");
                 }
-
-                MarkdownWriter.AppendLine();
             }
         }
 
@@ -735,8 +732,6 @@ namespace SandcastleToDocFx.Visitors
                         break;
                         //throw new NotSupportedException($"Element type {type} not supported for <listItem>.");
                 }
-
-                MarkdownWriter.AppendLine();
             }
         }
     }

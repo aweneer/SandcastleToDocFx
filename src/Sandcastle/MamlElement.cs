@@ -125,6 +125,10 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class RelatedTopicsElement : MamlElement
     {
+        public bool IsReferenceAppended { get; set; }
+
+        public bool IsOtherResourcesAppended { get; set; }
+
         public RelatedTopicsElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
         }
@@ -244,8 +248,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class RichParaElement : MamlElement
     {
-        public RichParaElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool IsTableElement { get; set; }
+
+        public RichParaElement(XElement element, bool isTableElement = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.IsTableElement = isTableElement;
         }
 
         public override void Accept(Visitor visitor)

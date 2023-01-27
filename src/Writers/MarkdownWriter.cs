@@ -54,20 +54,17 @@ namespace SandcastleToDocFx.Writers
 
         public static void WriteHeading1(string value)
         {
-            StringBuilder.AppendLine();
-            StringBuilder.AppendLine($"# {value}");
+            StringBuilder.AppendLine($"# {value}{Environment.NewLine}");
         }
 
         public static void WriteHeading2(string value)
         {
-            StringBuilder.AppendLine();
-            StringBuilder.AppendLine($"## {value}");
+            StringBuilder.AppendLine($"## {value}{Environment.NewLine}");
         }
 
         public static void WriteHeading3(string value)
         {
-            StringBuilder.AppendLine();
-            StringBuilder.AppendLine($"### {value}");
+            StringBuilder.AppendLine($"### {value}{Environment.NewLine}");
         }
         public static void WriteTextBold(string value, bool lineBreak = false)
         {
@@ -101,7 +98,6 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendAlert(string? alertType = null)
         {
-            MarkdownWriter.AppendLine();
             StringBuilder.AppendLine($">[!{alertType?.ToUpperInvariant()}]");
             StringBuilder.Append(">");
         }
