@@ -11,9 +11,14 @@ namespace SandcastleToDocFx.Writers
     public static class MarkdownWriter
     {
         public static StringBuilder StringBuilder = new();
-        public static async void WriteFile(string fileName)
+        public static async void WriteFile(string destination, string fileName)
         {
-            var file = Path.Combine("C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport", $"{fileName}.md");
+            if (!Directory.Exists(destination))
+            {
+                Directory.CreateDirectory(destination);
+            }
+
+            var file = Path.Combine(destination, $"{fileName}.md");
 
             using (StreamWriter writer = File.CreateText(file))
             {
@@ -93,27 +98,44 @@ namespace SandcastleToDocFx.Writers
         {
             MarkdownWriter.WriteLine();
             StringBuilder.AppendLine($">[!{alertType?.ToUpperInvariant()}]");
-            StringBuilder.Append($">");
+            StringBuilder.Append(">");
         }
 
         public static void StartUnorderedListItem()
         {
             StringBuilder.Append("* ");
         }
-        public static void WriteUnorderedListItem(string value)
+        public static void StartOrderedListItem(int position)
         {
-            StringBuilder.AppendLine($"* {value}");
+            StringBuilder.Append($"{position}. ");
         }
 
-        public static void WriteCodeFromSourceFile(string file, string language)
+        public static void WriteCodeFromSourceFile(string sourceCodeFilePath, string language)
         {
-            var code = File.ReadAllText(file);
+            var code = File.Exists(sourceCodeFilePath)
+                ? File.ReadAllText(sourceCodeFilePath)
+                : $"Missing source code at: '{sourceCodeFilePath}'.";
             
             StringBuilder.AppendLine(@$"```{language}
 {code}
 ```");
         }
-        
+
+        public static void WriteCodeFromText(string sourceCodeText, string language)
+        {
+
+            StringBuilder.AppendLine(@$"```{language}
+{sourceCodeText.Trim()}
+```");
+        }
+
+
+        public static void AppendTopicId(string uid)
+        {
+            StringBuilder.AppendLine("---");
+            StringBuilder.AppendLine($"uid: {uid}");
+            StringBuilder.AppendLine("---");
+        }
         public static void WriteCode(string value)
         {
             StringBuilder.AppendLine($"`{value}`");
@@ -126,9 +148,20 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"![{imageName}]({imageReference})");
         }
 
-        public static void WriteHorizontalRule(string value)
+        public static void AppendCodeEntityReference(string codeEntityReference)
         {
-            StringBuilder.AppendLine($"---");
+            var cleanReference = codeEntityReference.Remove(0, 2).Trim();
+            StringBuilder.Append($"<xref:{cleanReference}>");
+        }
+
+
+        public static void AppendQuoteInline(string quotedText)
+        {
+            StringBuilder.Append($"\"{quotedText}\"");
+        }
+        public static void WriteHorizontalRule()
+        {
+            StringBuilder.AppendLine("---");
         }
 
         public static void WriteXref(string value)

@@ -30,19 +30,20 @@ namespace SandcastleToDocFx.Visitors
             {
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
+                MamlElement? mamlElement;
                 switch (type)
                 {
                     case ElementType.Para:
-                        MamlElement para = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
-                        para.Accept(this);
+                        mamlElement = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
                         break;
                     case ElementType.Code:
-                        var code = new CodeElement(element);
-                        code.Accept(this);
+                        mamlElement = new CodeElement(element);
                         break;
                     default:
-                        throw new NotSupportedException($"Element type {type} not supported for <<alert>.");
+                        throw new NotSupportedException($"Element type {type} not supported for <Alert>.");
                 }
+
+                mamlElement.Accept(this);
             }
         }
 
@@ -54,16 +55,41 @@ namespace SandcastleToDocFx.Visitors
         public override void Visit(CodeElement code)
         {
             var language = code.Element.Attribute("language")?.Value;
-            var sourceCode = code.Element.Attribute("source")?.Value;
-
-               
-            if (sourceCode != null)
+            var source = code.Element.Attribute("source")?.Value;
+            
+            if (source != null)
             {
-                var sourceCodeFile = Path.Combine(Program.SourceCodeDirectory, sourceCode);
+                var sourceCodeFile = Path.Combine(Program.SourceCodeDirectory, source);
 
-                MarkdownWriter.WriteCodeFromSourceFile(sourceCodeFile, language);   
+                MarkdownWriter.WriteCodeFromSourceFile(sourceCodeFile, language ?? "");   
             }
+            else if (!string.IsNullOrWhiteSpace(code.Element.Value))
+            {
+                MarkdownWriter.WriteCodeFromText(code.Element.Value, language ?? "");   
+            }
+
             MarkdownWriter.WriteLine();
+        }
+
+        public override void Visit(SectionsElement sections)
+        {
+            foreach (var element in sections.Element.Elements())
+            {
+                Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
+
+                MamlElement? mamlElementType = null;
+                switch ( type )
+                {
+                    case ElementType.Section:
+                        mamlElementType = new SectionElement(element);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <Sections>.");
+                }
+
+                mamlElementType?.Accept(this);
+
+            }
         }
 
         public override void Visit(SectionElement section)
@@ -75,14 +101,20 @@ namespace SandcastleToDocFx.Visitors
                 MamlElement? mamlElementType = null;
                 switch ( type )
                 {
-                    case ElementType.Title:
-                        mamlElementType = new TitleElement(element);
-                        break;
                     case ElementType.Content:
                         mamlElementType = new ContentElement(element);
                         break;
-                    default:
+                    case ElementType.Para:
+                        mamlElementType = element.HasAttributes ? new RichParaElement(element) : new ParaElement(element);
                         break;
+                    case ElementType.Sections:
+                        mamlElementType = new SectionsElement(element);
+                        break;
+                    case ElementType.Title:
+                        mamlElementType = new TitleElement(element);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <Section>.");
                 }
 
                 mamlElementType?.Accept(this);
@@ -100,7 +132,6 @@ namespace SandcastleToDocFx.Visitors
         {
             foreach (var element in introduction.Element.Elements())
             {
-                Console.WriteLine(element.Name.LocalName);
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 MamlElement? mamlElementType = null;
@@ -116,10 +147,9 @@ namespace SandcastleToDocFx.Visitors
                     case ElementType.Para:
                         mamlElementType = element.HasAttributes ? new RichParaElement(element) : new ParaElement(element);
                         break;
-                    
                     default:
-                        Console.WriteLine(element.Name.LocalName +" not supported yet");
-
+                        
+                        //throw new NotSupportedException($"Element type {type} not supported for <Introduction>.");
                         break;
                 }
                 
@@ -129,6 +159,11 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(RelatedTopicsElement relatedTopics)
         {
+            if (relatedTopics.Element.HasElements)
+            {
+                MarkdownWriter.WriteHeading2("See Also");
+            }
+
             foreach (var element in relatedTopics.Element.Elements())
             {
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
@@ -137,15 +172,24 @@ namespace SandcastleToDocFx.Visitors
 
                 switch (type)
                 {
+                    case ElementType.CodeEntityReference:
+                        mamlElementType = new CodeEntityReferenceElement(element);
+                        break;
+                    case ElementType.ExternalLink:
+                        mamlElementType = new ExternalLinkElement(element);
+                        break;
                     case ElementType.Link:
                         mamlElementType = new LinkElement(element);
                         break;
                     default:
-                        Console.WriteLine(element.Name.LocalName + " unsupported yet.");
+                        throw new NotSupportedException($"Element type {type} not supported for <RelatedTopics>.");
                         break;
                 }
 
                 mamlElementType?.Accept(this);
+                MarkdownWriter.WriteLine();
+                MarkdownWriter.WriteLine();
+
             }
         }
 
@@ -180,8 +224,11 @@ namespace SandcastleToDocFx.Visitors
                     case ElementType.Section:
                         mamlElementType = new SectionElement(element);
                         break;
+                    case ElementType.Sections:
+                        mamlElementType = new SectionsElement(element);
+                        break;
                     case ElementType.Steps:
-                        Console.WriteLine(element.Name.LocalName + " NOT SUPPORTED YET");
+                        mamlElementType = new StepsElement(element);
                         break;
                     case ElementType.Table:
                         mamlElementType = new TableElement(element);
@@ -199,9 +246,83 @@ namespace SandcastleToDocFx.Visitors
             }
         }
 
+        public override void Visit(StepsElement stepsElement)
+        {
+            var steps = stepsElement.Element.Elements().ToArray();
+
+            for (int i = 0; i < steps.Length; i++)
+            {
+                MarkdownWriter.StartOrderedListItem( i+1 );
+
+                var stepElement = steps[i];
+                Utilities.ParseEnum(stepElement.Name.LocalName, out ElementType type);
+
+                MamlElement? mamlElementType = null;
+                switch (type)
+                {
+                    case ElementType.Step:
+                        var step = new StepElement(stepElement);
+                        step.Accept(this);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <Steps>.");
+                }
+            }
+        }
+
+        public override void Visit(StepElement step)
+        {
+            foreach (var element in step.Element.Elements())
+            {
+                Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
+
+                MamlElement? mamlElementType = null;
+
+                switch (type)
+                {
+                    case ElementType.Content:
+                        mamlElementType = new ContentElement(element);
+                        break;
+                    case ElementType.Para:
+                        mamlElementType = new ParaElement(element);
+                        break;
+                    case ElementType.Section:
+                        mamlElementType = new SectionElement(element);
+                        break;
+                    case ElementType.Step:
+                        mamlElementType = new StepElement(element);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <Step>.");
+                }
+                
+                mamlElementType.Accept(this);
+            }
+        }
+        
         public override void Visit(ProcedureElement procedure)
         {
-            // TODO
+            foreach (var element in procedure.Element.Elements())
+            {
+                Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
+
+                MamlElement? mamlElementType = null;
+
+                switch (type)
+                {
+                    case ElementType.Title:
+                        mamlElementType = new TitleElement(element);
+                        break;
+                    case ElementType.Steps:
+                        mamlElementType = new StepsElement(element);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <Procedure>.");
+                        break;
+                }
+                
+                mamlElementType?.Accept(this);
+            }
         }
 
         public override void Visit(MediaLinkElement mediaLink)
@@ -331,7 +452,10 @@ namespace SandcastleToDocFx.Visitors
 
                 MamlElement mamlElementType;
                 switch (type)
-                {    
+                {
+                    case ElementType.Code:
+                        mamlElementType = new CodeElement(element);
+                        break;
                     case ElementType.Link:
                         mamlElementType = new LinkElement(element);
                         break;
@@ -354,18 +478,49 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(ParaElement para)
         {
-            MarkdownWriter.WriteParagraph(para.Element.Value);
-
             // Para contains only text, so we add a space behind.
-            if (!para.Element.Elements().Any() && para.Element.Parent!.Name.LocalName != "entry" )
+            if (!para.Element.Elements().Any())
             {
-                MarkdownWriter.WriteLine();
-                MarkdownWriter.WriteLine();
+                MarkdownWriter.WriteParagraph(para.Element.Value);
+
+                if (para.Element.Parent!.Name.LocalName != "entry")
+                {
+                    MarkdownWriter.WriteLine();
+                    MarkdownWriter.WriteLine();
+                }
+            }
+            
+            // Para contains something more.
+            if (para.Element.Elements().Any())
+            {
+                foreach (var element in para.Element.Elements())
+                {
+                    Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
+
+                    MamlElement? mamlElement = null;
+                    
+                    switch (type)
+                    {
+                        case ElementType.Para:
+                            mamlElement = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                            break;
+                        case ElementType.Code:
+                            mamlElement = new CodeElement(element);
+                            break;
+                        default:
+                            break;
+                        //throw new NotSupportedException($"Element type {type} not supported for <listItem>.");
+                    }
+
+                    mamlElement?.Accept(this);
+                }
             }
         }
         
         public override void Visit(RichParaElement para)
         {
+            var nodesCount = para.Element.Nodes().Count();
+
             // Para contains an element (and possibly even text).
             foreach (var node in para.Element.Nodes())
             {
@@ -388,58 +543,41 @@ namespace SandcastleToDocFx.Visitors
                                 break;
                             case ElementType.CodeInline:
                             case ElementType.LanguageKeyword:
+                            case ElementType.Literal:
                                 mamlElementType = new CodeInlineElement(elementFromNode);
                                 break;
                             case ElementType.ExternalLink:
                                 mamlElementType = new ExternalLinkElement(elementFromNode);
                                 break;
+                            case ElementType.Application:
                             case ElementType.LegacyBold:
-                                mamlElementType = new CodeInlineElement(elementFromNode);
+                            case ElementType.Ui:
+                                mamlElementType = new LegacyBoldElement(elementFromNode);
                                 break;
                             case ElementType.LegacyItalic:
-                                mamlElementType = new CodeInlineElement(elementFromNode);
+                            case ElementType.NewTerm:
+                            case ElementType.ParameterReference:
+                                mamlElementType = new LegacyItalicElement(elementFromNode);
                                 break;
                             case ElementType.CodeEntityReference:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                mamlElementType = new CodeEntityReferenceElement(elementFromNode);
                                 break;
                             case ElementType.LocalUri:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.Literal:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.Application:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.Ui:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                mamlElementType = new LegacyItalicElement(elementFromNode);
                                 break;
                             case ElementType.Markup:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                MarkdownWriter.Append(node.ToString());
                                 break;
                             case ElementType.Superscript:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.NewTerm:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.ParameterReference:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                MarkdownWriter.Append(node.ToString());
                                 break;
                             case ElementType.QuoteInline:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.TableHeader:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
-                                break;
-                            case ElementType.Title:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                MarkdownWriter.AppendQuoteInline(elementFromNode.Name.LocalName);
                                 break;
                             case ElementType.Token:
-                                Console.WriteLine(elementFromNode.Name.LocalName + " NOT SUPPORTED YET");
+                                mamlElementType = new TokenElement(elementFromNode);
                                 break;
                             default:
-                                Console.WriteLine(elementFromNode.Value);
                                 throw new NotSupportedException($"Element type {type} not supported for <RichPara>.");
                                 break;
                         }
@@ -453,10 +591,46 @@ namespace SandcastleToDocFx.Visitors
                     default:
                         throw new NotSupportedException($"Node type {node.NodeType} not supported for <RichPara>.");
                 }
-                MarkdownWriter.Append(' ');
+
+                if (nodesCount > 1)
+                {
+                    MarkdownWriter.Append(' ');
+                }
             }
-            MarkdownWriter.WriteLine();
-            MarkdownWriter.WriteLine();
+
+            if (nodesCount > 1)
+            {
+                MarkdownWriter.WriteLine("\n");
+            }
+
+        }
+
+        public override void Visit(TokenElement token)
+        {
+            var tokenName = token.Element.Value;
+
+            // TODO: Move to separate method AND/OR fix how this is read.
+            var tokenDocuments = Directory.EnumerateFiles(Program.DocumentationFilesDirectory, "*.tokens",
+                SearchOption.AllDirectories);
+
+            foreach (var document in tokenDocuments)
+            {
+                var doc = XDocument.Load(document);
+
+                var element = doc.Root!.Elements().SingleOrDefault(e => e.Attribute("id")?.Value == tokenName);
+
+                if (element != null)
+                {
+                    MamlElement mamlElement = element.HasAttributes ? new RichParaElement(element) : new ParaElement(element);
+                    mamlElement.Accept(this);
+                    break;
+                }
+            }
+        }
+        
+        public override void Visit(CodeEntityReferenceElement codeEntityReferenceElement)
+        {
+            MarkdownWriter.AppendCodeEntityReference(codeEntityReferenceElement.Element.Value);
         }
 
         public override void Visit(ExternalLinkElement externalLink)

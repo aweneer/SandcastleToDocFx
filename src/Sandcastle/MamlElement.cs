@@ -72,6 +72,16 @@ namespace SandcastleToDocFx.Sandcastle
             visitor.Visit(this);
         }
     }
+
+    public class SectionsElement : MamlElement
+    {
+        public SectionsElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
     public class RelatedTopicsElement : MamlElement
     {
         public RelatedTopicsElement(XElement element) : base(element) { }
@@ -271,10 +281,49 @@ namespace SandcastleToDocFx.Sandcastle
             visitor.Visit(this);
         }
     }
-    
+
+    public class TokenElement : MamlElement
+    {
+        public TokenElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
     public class CommandElement : MamlElement
     {
         public CommandElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class CodeEntityReferenceElement : MamlElement
+    {
+        public CodeEntityReferenceElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class StepsElement : MamlElement
+    {
+        public StepsElement(XElement element) : base(element) { }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+        }
+    }
+
+    public class StepElement : MamlElement
+    {
+        public StepElement(XElement element) : base(element) { }
 
         public override void Accept(Visitor visitor)
         {
