@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -16,6 +17,7 @@ namespace SandcastleToDocFx
     public class Program
     {
         public static string SourceCodeDirectory;
+        public static string DocumentationFilesDirectory;
         static void Main(string[] args)
         {
             // TODO: Finish commandline app.
@@ -27,22 +29,45 @@ namespace SandcastleToDocFx
             // TODO: Foreach *.aml file in args[1]
 
             var document = "";
+            var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport";
+            
+            Directory.Delete(destination, true);
 
+            if (!Directory.Exists(destination))
+            {
+                Directory.CreateDirectory(destination);
+            }
+
+            var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\toc.content");
+            var yamlWriter = new YamlWriter();
+
+            foreach (var topic in tocDocument.Root.Elements())
+            {
+                yamlWriter.ProcessTopic(topic);
+            }
+
+            yamlWriter.WriteYamlFile(Path.Combine(destination, "toc.yml"));
+            
+            
             var visitor = new MamlVisitor();
 
+            var amlFilesDirectory = "C:\\src\\PostSharp.Documentation\\Source";
+            DocumentationFilesDirectory = amlFilesDirectory;
             var doc = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Overview.aml");
             var doc2 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Logging\\Console.aml");
             var doc3 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Introduction\\Introduction.aml");
 
+
             SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";
-            var files = Directory.GetFiles("C:\\src\\PostSharp.Documentation\\Source", "*.aml", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(amlFilesDirectory, "*.aml", SearchOption.AllDirectories);
             files = files.ToArray();
             foreach (var file in files)
             {
-                //Console.WriteLine("===");
                 doc3 = XDocument.Load(file);
                 Console.WriteLine(file);
-                var fileName = doc3.Root.Attribute("id").Value;
+                var documentId = doc3.Root.Attribute("id").Value;
+                MarkdownWriter.AppendTopicId(documentId);
+                
                 foreach (var element in doc3.Root.Elements().FirstOrDefault().Elements())
                 {
                     if (!Utilities.ParseEnum(element.Name.LocalName, out ElementType parsedElementName))
@@ -59,10 +84,10 @@ namespace SandcastleToDocFx
                             var introduction = new IntroductionElement(element);
                             introduction.Accept(visitor);
                             break;
-                        // case ElementType.RelatedTopics:
-                        //     var related = new RelatedTopicsElement(element);
-                        //     related.Accept(visitor);
-                        //     break;
+                        case ElementType.RelatedTopics:
+                            var related = new RelatedTopicsElement(element);
+                            related.Accept(visitor);
+                            break;
                         case ElementType.Section:
                             var section = new SectionElement(element);
                             section.Accept(visitor);
@@ -77,7 +102,8 @@ namespace SandcastleToDocFx
                     }
 
                 }
-                MarkdownWriter.WriteFile(fileName);
+
+                MarkdownWriter.WriteFile(destination, documentId);
             }
         }
     }
