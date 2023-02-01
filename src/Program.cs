@@ -5,6 +5,7 @@ using Spectre.Cli;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,8 +17,8 @@ namespace SandcastleToDocFx
 {
     public class Program
     {
-        public static string SourceCodeDirectory;
-        public static string DocumentationFilesDirectory;
+        public static string? SourceCodeDirectory;
+        public static DirectoryInfo? DocumentationFilesDirectory;
         static void Main(string[] args)
         {
             // TODO: Finish commandline app.
@@ -28,7 +29,7 @@ namespace SandcastleToDocFx
 
             // TODO: Foreach *.aml file in args[1]
 
-            var document = "";
+            // SandcastleToDocFxExport\conceptual == PostSharp.Documentation\Source
             var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport";
             
             Directory.Delete(destination, true);
@@ -51,28 +52,58 @@ namespace SandcastleToDocFx
             
             var visitor = new MamlVisitor();
 
-            var amlFilesDirectory = "C:\\src\\PostSharp.Documentation\\Source";
-            DocumentationFilesDirectory = amlFilesDirectory;
-            var doc = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Overview.aml");
-            var doc2 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Logging\\Console.aml");
-            var doc3 = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\Introduction\\Introduction.aml");
+            // Replace with command argument.
+            var sourceDirectory = "C:\\src\\PostSharp.Documentation\\Source";
+            var sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
-
+            DocumentationFilesDirectory = sourceDirectoryInfo;
             SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";
-            var files = Directory.GetFiles(amlFilesDirectory, "*.aml", SearchOption.AllDirectories);
-            files = files.ToArray();
-            foreach (var file in files)
+            TransformMamlFilesToMarkdown(visitor, sourceDirectoryInfo, destination);
+        }
+
+        public static void TransformMamlFilesToMarkdown(MamlVisitor visitor, DirectoryInfo sourceDirectory, string destinationDirectory)
+        {
+
+            if (!Directory.Exists(destinationDirectory))
             {
-                doc3 = XDocument.Load(file);
-                Console.WriteLine(file);
-                var documentId = doc3.Root.Attribute("id").Value;
-                MarkdownWriter.AppendTopicId(documentId);
+                Directory.CreateDirectory(destinationDirectory);
+            }
+            
+            var filesToCopy = sourceDirectory.GetFiles("*.png", SearchOption.TopDirectoryOnly);
+
+            // Copy all required files.
+            foreach (var file in filesToCopy)
+            {
+                var targetFilePath = Path.Combine(destinationDirectory, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            var filesToTransform = sourceDirectory.GetFiles("*.aml", SearchOption.TopDirectoryOnly);
+
+            foreach (var file in filesToTransform)
+            {
+                var document = XDocument.Load(file.ToString());
+                //Console.WriteLine(file);
+                var documentId = document.Root.Attribute("id");
+                MarkdownWriter.StartMarkdownMetadata();
+                MarkdownWriter.AppendMetadataUid(documentId.Value);
+                Console.WriteLine(documentId);
+                var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\TOC.content");
+                var fileTitle = tocDocument
+                    .Descendants()
+                    .Where(e => e.Attribute("id")?.Value == documentId.Value)
+                    .Select(e => e.Attribute("title")?.Value ?? "null")
+                    .SingleOrDefault();
+
+                // TODO: Better null/error handling.
+                MarkdownWriter.AppendMetadataTitle(fileTitle);
+                MarkdownWriter.EndMarkdownMetadata();
                 
-                foreach (var element in doc3.Root.Elements().FirstOrDefault().Elements())
+                foreach (var element in document.Root.Elements().FirstOrDefault().Elements())
                 {
                     if (!Utilities.ParseEnum(element.Name.LocalName, out ElementType parsedElementName))
                     {
-                        throw new NotSupportedException(element.Name.LocalName.ToString() + " not supported");
+                        throw new NotSupportedException($"Unexpected element type <{element.Name.LocalName}> not supported.");
                     }
 
                     switch (parsedElementName)
@@ -106,7 +137,13 @@ namespace SandcastleToDocFx
 
                 }
 
-                MarkdownWriter.WriteFile(destination, documentId);
+                MarkdownWriter.WriteFile(destinationDirectory, documentId.Value);
+            }
+
+            foreach (var subdirectory in sourceDirectory.GetDirectories())
+            {
+                var newDestinationDirectory = Path.Combine(destinationDirectory, subdirectory.Name);
+                TransformMamlFilesToMarkdown(visitor, subdirectory, newDestinationDirectory  );
             }
         }
     }
