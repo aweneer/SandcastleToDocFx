@@ -11,7 +11,7 @@ namespace SandcastleToDocFx.Writers
     public static class MarkdownWriter
     {
         public static StringBuilder StringBuilder = new();
-        public static async void WriteFile(string destination, string fileName)
+        public static void WriteFile(string destination, string fileName)
         {
             if (!Directory.Exists(destination))
             {
@@ -54,18 +54,34 @@ namespace SandcastleToDocFx.Writers
 
         public static void WriteHeading1(string value)
         {
-            StringBuilder.AppendLine($"# {value}{Environment.NewLine}");
+            StringBuilder.AppendLine($"# {value.Trim()}{Environment.NewLine}");
         }
 
         public static void WriteHeading2(string value)
         {
-            StringBuilder.AppendLine($"## {value}{Environment.NewLine}");
+            StringBuilder.AppendLine($"## {value.Trim()}{Environment.NewLine}");
         }
 
         public static void WriteHeading3(string value)
         {
-            StringBuilder.AppendLine($"### {value}{Environment.NewLine}");
+            StringBuilder.AppendLine($"### {value.Trim()}{Environment.NewLine}");
         }
+
+        public static void WriteHeading4(string value)
+        {
+            StringBuilder.AppendLine($"#### {value.Trim()}{Environment.NewLine}");
+        }
+
+        public static void WriteHeading5(string value)
+        {
+            StringBuilder.AppendLine($"##### {value.Trim()}{Environment.NewLine}");
+        }
+
+        public static void WriteHeading6(string value)
+        {
+            StringBuilder.AppendLine($"###### {value.Trim()}{Environment.NewLine}");
+        }
+
         public static void WriteTextBold(string value, bool lineBreak = false)
         {
             StringBuilder.Append($"**{value}**");
@@ -89,6 +105,16 @@ namespace SandcastleToDocFx.Writers
         public static void AppendCodeInline(string value)
         {
             StringBuilder.Append($"`{value}`");
+        }
+
+        public static void StartCodeInline()
+        {
+            StringBuilder.Append("<code>");
+        }
+
+        public static void EndCodeInline()
+        {
+            StringBuilder.Append("</code>");
         }
 
         public static void WriteOrderedListItem(int position, string value)
@@ -130,30 +156,50 @@ namespace SandcastleToDocFx.Writers
 ```");
         }
 
-
-        public static void AppendTopicId(string uid)
+        public static void StartMarkdownMetadata()
         {
-            StringBuilder.AppendLine("---");
-            StringBuilder.AppendLine($"uid: {uid}");
-            StringBuilder.AppendLine("---");
+            WriteHorizontalRule();
         }
+
+        public static void EndMarkdownMetadata()
+        {
+            // TODO: Better handling.
+            if (!StringBuilder.ToString().Contains("---"))
+            {
+                throw new IOException($"{typeof(MarkdownWriter)} did not call append start of markdown metadata yet.");
+            }
+
+            WriteHorizontalRule();
+        }
+
+        public static void AppendMetadataUid(string uid)
+        {
+            StringBuilder.AppendLine($"uid: {uid}");
+        }
+
+        public static void AppendMetadataTitle(string title)
+        {
+            StringBuilder.AppendLine($"title: \"{title}\"");
+        }
+        
+        
+
         public static void WriteCode(string value)
         {
             StringBuilder.AppendLine($"`{value}`");
         }
 
         public static void AppendImage(
-            string imageReference,
+            string filePath,
             string imageName = "Image",
             string imageExtension = ".png" )
         {
-            StringBuilder.AppendLine($"![{imageName}]({imageReference}{imageExtension})");
+            StringBuilder.AppendLine($"![{imageName}]({filePath}{imageExtension})");
         }
 
         public static void AppendCodeEntityReference(string codeEntityReference)
         {
-            var cleanReference = codeEntityReference.Remove(0, 2).Trim();
-            StringBuilder.Append($"<xref:{cleanReference}>");
+            StringBuilder.Append($"<xref:{codeEntityReference}>");
         }
 
 
@@ -191,7 +237,7 @@ namespace SandcastleToDocFx.Writers
             {
                 var value = values[i];
                 headerValuesLengths[i] = value.Length;
-                StringBuilder.Append(value);
+                StringBuilder.Append(value.Trim());
                 if ( i + 1 < values.Length )
                 {
                     StringBuilder.Append(" | ");
