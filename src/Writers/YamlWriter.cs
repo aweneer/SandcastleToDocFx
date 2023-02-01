@@ -24,11 +24,14 @@ public class YamlWriter
         {
             throw new XmlException($"The element '<{topic.Name.LocalName}>' is missing both required attributes 'id' and 'title'.");
         }
-        
-        indentation += "  ";
+
+        topicTitle = topicTitle.Contains(':') ? "\"" + topicTitle + "\"" : topicTitle;
+
+
         StringBuilder.AppendLine($"{indentation}items:");
         StringBuilder.AppendLine($"{indentation}- name: {topicTitle}");
         StringBuilder.AppendLine($"{indentation}  topicUid: {topicId}");
+        indentation += "  ";
         foreach (var subTopic in topic.Elements())
         {
             ProcessTopic(subTopic, indentation);

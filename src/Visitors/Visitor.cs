@@ -16,6 +16,8 @@ namespace SandcastleToDocFx.Visitors
         public abstract void Visit(ContentElement content);
 
         public abstract void Visit(CodeElement code);
+        public abstract void Visit(CommandElement command);
+        public abstract void Visit(ConclusionElement conclusion);
         public abstract void Visit(IntroductionElement introduction);
         public abstract void Visit(TopicElement topic);
         public abstract void Visit(SectionElement section);

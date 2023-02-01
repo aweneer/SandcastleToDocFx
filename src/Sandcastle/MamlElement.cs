@@ -259,7 +259,8 @@ namespace SandcastleToDocFx.Sandcastle
         {
             visitor.Visit(this);
 
-            if (this.ShouldLineBreak)
+            // TODO: Fix this logic, for steps it is broken
+            if (this.ShouldLineBreak && !IsTableElement)
             {
                 MarkdownWriter.AppendLine();
             }
@@ -456,8 +457,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class TitleElement : MamlElement
     {
-        public TitleElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public Heading Heading { get; set; }
+
+        public TitleElement(XElement element, Heading heading, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.Heading = heading;
         }
 
         public override void Accept(Visitor visitor)
@@ -543,6 +547,23 @@ namespace SandcastleToDocFx.Sandcastle
     public class StepElement : MamlElement
     {
         public StepElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        {
+        }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.Visit(this);
+
+            if (this.ShouldLineBreak)
+            {
+                MarkdownWriter.AppendLine();
+            }
+        }
+    }
+
+    public class ConclusionElement : MamlElement
+    {
+        public ConclusionElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
         }
 
