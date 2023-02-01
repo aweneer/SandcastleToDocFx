@@ -19,6 +19,7 @@ namespace SandcastleToDocFx
     {
         public static string? SourceCodeDirectory;
         public static DirectoryInfo? DocumentationFilesDirectory;
+        public static XElement? RootElement;
         static void Main(string[] args)
         {
             // TODO: Finish commandline app.
@@ -83,11 +84,12 @@ namespace SandcastleToDocFx
             foreach (var file in filesToTransform)
             {
                 var document = XDocument.Load(file.ToString());
-                //Console.WriteLine(file);
+                Console.WriteLine(file);
                 var documentId = document.Root.Attribute("id");
+                RootElement = document.Root;
                 MarkdownWriter.StartMarkdownMetadata();
                 MarkdownWriter.AppendMetadataUid(documentId.Value);
-                Console.WriteLine(documentId);
+                //Console.WriteLine(documentId);
                 var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\TOC.content");
                 var fileTitle = tocDocument
                     .Descendants()

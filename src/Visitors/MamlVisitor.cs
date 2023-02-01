@@ -182,7 +182,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new TableElement(element);
                         break;
                     case ElementType.AutoOutline:
-                        // Nothing.
+                        // Nothing to generate. DocFx automatically creates outline from heading elements.
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <Introduction>.");
@@ -544,7 +544,25 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(LinkElement link)
         {
-            MarkdownWriter.WriteXref(link.Element.Attributes().SingleOrDefault( a => a.Name.LocalName == "href")!.Value);
+            var linkHref = link.Element.Attributes().SingleOrDefault(a => a.Name.LocalName == "href");
+
+            if (linkHref != null && linkHref.Value.Contains('#'))
+            {
+                var splitLink = linkHref.Value.Split('#');
+
+                if (splitLink.Length != 2)
+                {
+                    throw new NotSupportedException($"Split link has illegal length of '{splitLink.Length}'.");
+                }
+
+                var linkData = Utilities.GetTitleAndLinkFromAddressedElement(splitLink[1]);
+                var newLink = Utilities.CreateNewHeaderLink(linkData.Link, splitLink[0]);
+                MarkdownWriter.WriteLink(linkData.Title, newLink);
+            }
+            else
+            {
+                MarkdownWriter.WriteXref(linkHref.Value);
+            }
         }
 
         public override void Visit(ParaElement para)

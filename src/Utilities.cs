@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace SandcastleToDocFx
 {
@@ -44,6 +45,7 @@ namespace SandcastleToDocFx
                 cleanCodeEntityReference = originalReference.Remove(0, type!.Length).Trim();
             }
 
+            // TODO: Verify this is needed.
             // Replace backtick with dash.
             //cleanCodeEntityReference = cleanCodeEntityReference.Replace("`", "-");
 
@@ -58,5 +60,40 @@ namespace SandcastleToDocFx
             return cleanCodeEntityReference;
         }
 
+        /// <summary>
+        /// Replaces value of <paramref name="originalLink"/> XAttribute,
+        /// looking for identical reference and replacing it with Markdown header value, normalized for header links.
+        /// </summary>
+        /// <param name="originalLink"></param>
+        /// <returns></returns>
+        public static (string Title, string Link) GetTitleAndLinkFromAddressedElement(string originalLink)
+        {
+            foreach (var element in Program.RootElement!.Descendants().Where( e => e.Attribute("address") != null))
+            {
+                var addressAttribute = element.Attribute("address");
+
+                var titleElement = element.Elements().FirstOrDefault(e => e.Name.LocalName == "title");
+
+                if (titleElement != null && originalLink.Contains(addressAttribute!.Value))
+                {
+                    var titleValue = titleElement.Value;
+                    return (titleValue, titleValue.ToLowerInvariant().Replace(' ', '-'));
+                }
+            }
+
+            return (originalLink, originalLink);
+        }
+
+        public static string CreateNewHeaderLink(string link, string? article = null)
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(article))
+            {
+                sb.Append(article);
+            }
+            sb.Append('#');
+            sb.Append(link);
+            return sb.ToString();
+        }
     }
 }
