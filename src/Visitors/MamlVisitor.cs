@@ -86,7 +86,7 @@ namespace SandcastleToDocFx.Visitors
                 switch ( type )
                 {
                     case ElementType.Section:
-                        mamlElementType = new SectionElement(element);
+                        mamlElementType = new SectionElement(element, true);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <Sections>.");
@@ -115,7 +115,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new SectionsElement(element);
                         break;
                     case ElementType.Title:
-                        mamlElementType = new TitleElement(element, Heading.H2);
+                        mamlElementType = section.IsSubsection ? new TitleElement(element, Heading.H3) : new TitleElement(element, Heading.H2);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <Section>.");
@@ -463,9 +463,9 @@ namespace SandcastleToDocFx.Visitors
                 // TODO: Error handling.
                 return;
             }
-            
-            var filePath = Directory.GetFiles(Program.SourceCodeDirectory!, $"*{imageReference}*", SearchOption.AllDirectories).FirstOrDefault();
 
+            var filePath = Directory.GetFiles(Program.DocumentationFilesDirectory.FullName, $"{imageReference}.png", SearchOption.AllDirectories).FirstOrDefault();
+            
             MarkdownWriter.AppendImage(filePath ?? imageReference);
         }
 

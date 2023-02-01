@@ -91,8 +91,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class SectionElement : MamlElement
     {
-        public SectionElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool IsSubsection { get; set; }
+
+        public SectionElement(XElement element, bool isSubsection = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.IsSubsection = isSubsection;
         }
 
         public override void Accept(Visitor visitor)

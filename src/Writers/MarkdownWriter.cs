@@ -191,10 +191,9 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendImage(
             string filePath,
-            string imageName = "Image",
-            string imageExtension = ".png" )
+            string imageName = "Image")
         {
-            StringBuilder.AppendLine($"![{imageName}]({filePath}{imageExtension})");
+            StringBuilder.AppendLine($"![{imageName}]({filePath})");
         }
 
         public static void AppendCodeEntityReference(string codeEntityReference)
