@@ -42,11 +42,6 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.Append(character);
         }
 
-        public static void WriteParagraph(string value)
-        {
-            StringBuilder.Append(value.Trim());
-        }
-
         public static void Append(string value)
         {
             StringBuilder.Append(value.Trim());
@@ -216,9 +211,16 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.Append($"<xref:{value}>");
         }
         
-        public static void WriteLink(string value, string link)
+        public static void WriteLink(string value, string link, bool lineBreaks = false)
         {
-            StringBuilder.Append($"[{value}]({link})");
+            if (lineBreaks)
+            {
+                StringBuilder.AppendLine($"[{value}]({link})");
+            }
+            else
+            {
+                StringBuilder.Append($"[{value}]({link})");
+            }
         }
         public static void WriteLinkWithTitle(string value, string link, string title)
         {

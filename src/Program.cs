@@ -19,7 +19,8 @@ namespace SandcastleToDocFx
     {
         public static string? SourceCodeDirectory;
         public static DirectoryInfo? DocumentationFilesDirectory;
-        public static XElement? RootElement;
+        public static XElement? CurrentConceptualFileRootElement;
+        public static FileInfo? CurrentConceptualFile;
         static void Main(string[] args)
         {
             // TODO: Finish commandline app.
@@ -83,10 +84,12 @@ namespace SandcastleToDocFx
 
             foreach (var file in filesToTransform)
             {
-                var document = XDocument.Load(file.ToString());
+                CurrentConceptualFile = file;
+                var document = XDocument.Load(file.FullName);
+                CurrentConceptualFileRootElement = document.Root;
                 Console.WriteLine(file);
-                var documentId = document.Root.Attribute("id");
-                RootElement = document.Root;
+                var documentId = CurrentConceptualFileRootElement.Attribute("id");
+
                 MarkdownWriter.StartMarkdownMetadata();
                 MarkdownWriter.AppendMetadataUid(documentId.Value);
                 //Console.WriteLine(documentId);
@@ -101,6 +104,10 @@ namespace SandcastleToDocFx
                 MarkdownWriter.AppendMetadataTitle(fileTitle);
                 MarkdownWriter.EndMarkdownMetadata();
                 
+                if ( !string.IsNullOrEmpty(fileTitle)) {
+                    MarkdownWriter.WriteHeading1(fileTitle);
+                }
+
                 foreach (var element in document.Root.Elements().FirstOrDefault().Elements())
                 {
                     if (!Utilities.ParseEnum(element.Name.LocalName, out ElementType parsedElementName))
