@@ -56,8 +56,7 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(CodeElement code)
         {
-            var language = code.Element.Attribute("language")?.Value;
-            language = language == "c#" ? "cs" : language;
+            var language = Utilities.ReplaceLanguage(code.Element.Attribute("language")?.Value!);
             var source = code.Element.Attribute("source")?.Value;
             
             if (source != null)
@@ -218,7 +217,7 @@ namespace SandcastleToDocFx.Visitors
                         break;
                     case ElementType.Link:
                         WriteRelatedTopicsResourcesHeader(ref relatedTopics);
-                        mamlElementType = new LinkElement(element, true);
+                        mamlElementType = new LinkElement(element, false, true);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <RelatedTopics>.");
@@ -460,13 +459,12 @@ namespace SandcastleToDocFx.Visitors
             var imageReference = image.Element.Attributes().SingleOrDefault(a => a.Name.LocalName == "href")?.Value;
             if (imageReference == null)
             {
-                // TODO: Error handling.
-                return;
+                throw new NotSupportedException($"<Image> element in {Program.CurrentConceptualFile} is missing a 'href' attribute.");
             }
 
-            var filePath = Directory.GetFiles(Program.DocumentationFilesDirectory.FullName, $"{imageReference}.png", SearchOption.AllDirectories).FirstOrDefault();
-            
-            MarkdownWriter.AppendImage(filePath ?? imageReference);
+            var imageFilePath = Utilities.GetRelativePathOfReferencedImage(imageReference, "png");
+
+            MarkdownWriter.AppendImage(imageFilePath);
         }
 
         public override void Visit(TableHeaderElement content)
@@ -516,10 +514,13 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(EntryElement entry)
         {
-            if ( entry.Element.HasElements )
+            var elements = entry.Element.Elements().ToArray();
+            var elementsCount = elements.Length;
+            bool requiresLineBreak = elementsCount > 1;
+                
+            for ( var i = 0; i < elementsCount; i++)
             {
-                var element = entry.Element.Elements().First();
-
+                var element = elements[i];
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 MamlElement mamlElementType;
@@ -529,7 +530,10 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new CodeElement(element);
                         break;
                     case ElementType.Link:
-                        mamlElementType = new LinkElement(element);
+                        mamlElementType = new LinkElement(element, false);
+                        break;
+                    case ElementType.List:
+                        mamlElementType = new ListElement(element);
                         break;
                     case ElementType.Para:
                         mamlElementType = element.HasElements ? new RichParaElement(element, true) : new ParaElement(element);
@@ -539,6 +543,9 @@ namespace SandcastleToDocFx.Visitors
                 }
 
                 mamlElementType.Accept(this);
+                if ( i + 1 < elementsCount ) {
+                    MarkdownWriter.Append("<br>");
+                }
             }
         }
 
@@ -554,10 +561,10 @@ namespace SandcastleToDocFx.Visitors
                 {
                     throw new NotSupportedException($"Split link has illegal length of '{splitLink.Length}'.");
                 }
-
+                
                 var linkData = Utilities.GetTitleAndLinkFromAddressedElement(splitLink[1]);
                 var newLink = Utilities.CreateNewHeaderLink(linkData.Link, splitLink[0]);
-                MarkdownWriter.WriteLink(linkData.Title, newLink);
+                MarkdownWriter.WriteLink(linkData.Title, newLink, link.IsOnlyLink);
             }
             else
             {
@@ -571,7 +578,7 @@ namespace SandcastleToDocFx.Visitors
             if (!para.Element.HasElements)
             {
                 var normalizedText = Utilities.NormalizeTextSpaces(para.Element.Value);
-                MarkdownWriter.WriteParagraph(normalizedText);
+                MarkdownWriter.Append(normalizedText);
 
                 if (para.Element.Parent != null && para.Element.Parent.Name.LocalName != "entry")
                 {
@@ -608,14 +615,14 @@ namespace SandcastleToDocFx.Visitors
             }
         }
         
-        public override void Visit(RichParaElement para)
+        public override void Visit(RichParaElement richPara)
         {
-            var nodesCount = para.Element.Nodes().Count();
+            var nodesCount = richPara.Element.Nodes().Count();
 
             // Para contains an element (and possibly even text).
-            foreach (var node in para.Element.Nodes())
+            foreach (var node in richPara.Element.Nodes())
             {
-                bool isPunctuation = false;
+                bool skipSpace = false;
                 switch (node.NodeType)
                 {
                     case XmlNodeType.Element:
@@ -628,7 +635,9 @@ namespace SandcastleToDocFx.Visitors
                         switch (type)
                         {
                             case ElementType.Link:
-                                mamlElementType = new LinkElement(elementFromNode);
+                                var isOnlyLink = richPara.Element.Nodes().All(n => n.NodeType == XmlNodeType.Element);
+                                var shouldLineBreak = richPara.Element.Parent!.Name.LocalName != "entry";
+                                mamlElementType = new LinkElement(elementFromNode, isOnlyLink, shouldLineBreak);
                                 break;
                             case ElementType.Command:
                                 mamlElementType = new CommandElement(elementFromNode, true);
@@ -687,6 +696,7 @@ namespace SandcastleToDocFx.Visitors
                         break;
                     case XmlNodeType.Text:
                         var normalizedText = Utilities.NormalizeTextSpaces(node.ToString());
+                        skipSpace = Utilities.TextEndsWithEnclosingGlyphs(normalizedText);
                         MarkdownWriter.Append(normalizedText);
                         break;
                     default:
@@ -695,16 +705,17 @@ namespace SandcastleToDocFx.Visitors
 
                 if (node.NextNode?.NodeType == XmlNodeType.Text)
                 {
-                    isPunctuation = Utilities.CheckTextForStartsWithPunctuation(node.NextNode.ToString());
+                    skipSpace = Utilities.TextStartsWithPunctuation(node.NextNode.ToString()) || Utilities.TextStartsWithEnclosingGlyphs(node.NextNode.ToString());
                 }
+                
 
-                if (nodesCount > 1 && !isPunctuation)
+                if (nodesCount > 1 && !skipSpace)
                 {
                     MarkdownWriter.Append(' ');
                 }
             }
 
-            if ( !para.IsTableElement && (para.ShouldLineBreak || nodesCount > 1 ))
+            if ( !richPara.IsTableElement && (richPara.ShouldLineBreak || nodesCount > 1 ))
             {
                 MarkdownWriter.AppendLine("\n");
             }

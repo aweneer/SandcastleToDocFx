@@ -272,8 +272,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class LinkElement : MamlElement
     {
-        public LinkElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool IsOnlyLink { get; set; }
+
+        public LinkElement(XElement element, bool isOnlyLink, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.IsOnlyLink = isOnlyLink;
         }
 
         public override void Accept(Visitor visitor)
