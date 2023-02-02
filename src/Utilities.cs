@@ -1,6 +1,7 @@
 ﻿using SandcastleToDocFx.Sandcastle;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,24 +26,35 @@ namespace SandcastleToDocFx
             return string.Join(" ", originalText.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries).ToList().Select(word => word));
         }
 
-        public static bool CheckTextForStartsWithPunctuation(string text)
+        public static bool TextStartsWithPunctuation(string text)
         {
             var punctuationSymbols = new[] {',', '.', ';', ':'};
             return punctuationSymbols.Any(symbol => symbol.Equals(text[0]));
         }
+        
+        public static bool TextStartsWithEnclosingGlyphs(string text)
+        {
+            var enclosingGlyphs = new[] {')', ']', '>', '}'};
+            return enclosingGlyphs.Any(symbol => symbol.Equals(text[0]));
+        }
+        
+        public static bool TextEndsWithEnclosingGlyphs(string text)
+        {
+            var punctuationSymbols = new[] {'(', '[', '<', '{'};
+            return punctuationSymbols.Any(symbol => symbol.Equals(text[^1]));
+        }
 
         public static string NormalizeCodeEntityReference(string originalReference)
         {
-            string cleanCodeEntityReference = originalReference;
+            string cleanCodeEntityReference = originalReference.Trim();
             
-            var types = new[] {"E:", "M:", "N:", "P:", "R:", "T:"};
-            var hasType = types.Any(symbol => symbol.Contains(cleanCodeEntityReference[0]));
-            var type = types.FirstOrDefault(symbol => symbol.Contains(cleanCodeEntityReference[0]));
+            var types = new[] {"E:", "F:", "M:", "N:", "P:", "R:", "T:", "Overload:"};
+            var type = types.FirstOrDefault(symbol => cleanCodeEntityReference.StartsWith(symbol));
 
             // Clean reference of type.
-            if (hasType)
+            if (!string.IsNullOrEmpty(type))
             {
-                cleanCodeEntityReference = originalReference.Remove(0, type!.Length).Trim();
+                cleanCodeEntityReference = cleanCodeEntityReference.Remove(0, type!.Length).Trim();
             }
 
             // TODO: Verify this is needed.
@@ -68,7 +80,7 @@ namespace SandcastleToDocFx
         /// <returns></returns>
         public static (string Title, string Link) GetTitleAndLinkFromAddressedElement(string originalLink)
         {
-            foreach (var element in Program.RootElement!.Descendants().Where( e => e.Attribute("address") != null))
+            foreach (var element in Program.CurrentConceptualFileRootElement!.Descendants().Where( e => e.Attribute("address") != null))
             {
                 var addressAttribute = element.Attribute("address");
 
@@ -94,6 +106,52 @@ namespace SandcastleToDocFx
             sb.Append('#');
             sb.Append(link);
             return sb.ToString();
+        }
+
+        public static HashSet<string> langs = new();
+
+        public static string ReplaceLanguage(string language)
+        {
+            if (string.IsNullOrEmpty(language))
+            {
+                return language;
+            }
+
+            var mamlByMarkdown = new Dictionary<string, string>()
+            {
+                {"csharp", "cs"},
+                {"c#", "cs"},
+                {"xaml", "xml"}
+            };
+
+            if (!mamlByMarkdown.TryGetValue(language, out var newLanguage))
+            {
+                return language;
+            }
+
+            return newLanguage;
+        }
+
+        public static string GetRelativePathOfReferencedImage( string imageReference, string extension )
+        {
+            var imageFile = imageReference + "." + extension;
+
+            // TODO: There could be multiple files with the same name under different directories.
+            var imageFilePath = Directory.GetFiles(
+                    Program.DocumentationFilesDirectory.FullName,
+                    imageFile,
+                    SearchOption.AllDirectories)
+                .FirstOrDefault();
+
+            if (imageFilePath == null)
+            {
+                throw new NotSupportedException($"No image file '{imageFile}' was found in {Program.DocumentationFilesDirectory}.");
+            }
+
+            imageFilePath = Path.GetRelativePath(Program.CurrentConceptualFile.Directory.FullName, imageFilePath);
+            imageFilePath = imageFilePath.Replace(@"\", "/");
+
+            return imageFilePath;
         }
     }
 }
