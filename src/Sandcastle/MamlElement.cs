@@ -7,11 +7,13 @@ namespace SandcastleToDocFx.Sandcastle
     public abstract class MamlElement
     {
         public XElement Element { get; set; }
+        public bool RequiresIndentation { get; set; }
         public bool ShouldLineBreak { get; set; }
 
-        public MamlElement(XElement element, bool shouldLineBreak)
+        public MamlElement(XElement element, bool requiresIndentation, bool shouldLineBreak)
         {
             Element = element;
+            RequiresIndentation = requiresIndentation;
             ShouldLineBreak = shouldLineBreak;
         }
 
@@ -22,11 +24,9 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class AlertElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
 
-        public AlertElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public AlertElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation, shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -42,7 +42,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CaptionElement : MamlElement
     {
-        public CaptionElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public CaptionElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -59,7 +59,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class TopicElement : MamlElement
     {
-        public TopicElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public TopicElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -77,7 +77,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class IntroductionElement : MamlElement
     {
-        public IntroductionElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public IntroductionElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -96,7 +96,12 @@ namespace SandcastleToDocFx.Sandcastle
     {
         public bool IsSubsection { get; set; }
 
-        public SectionElement(XElement element, bool isSubsection = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public SectionElement(
+            XElement element,
+            bool isSubsection = false,
+            bool requiresIndentation = false,
+            bool shouldLineBreak = false)
+            : base(element, requiresIndentation,  shouldLineBreak)
         {
             this.IsSubsection = isSubsection;
         }
@@ -114,7 +119,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class SectionsElement : MamlElement
     {
-        public SectionsElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public SectionsElement(
+            XElement element,
+            bool requiresIndentation = false,
+            bool shouldLineBreak = false)
+            : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -135,7 +144,7 @@ namespace SandcastleToDocFx.Sandcastle
 
         public bool IsOtherResourcesAppended { get; set; }
 
-        public RelatedTopicsElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public RelatedTopicsElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -152,10 +161,8 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ContentElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
-        public ContentElement(XElement element, bool requiresIndentation = false ,bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ContentElement(XElement element, bool requiresIndentation = false ,bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -171,7 +178,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class TableElement : MamlElement
     {
-        public TableElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public TableElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -188,7 +195,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class RowElement : MamlElement
     {
-        public RowElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public RowElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -205,7 +212,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class TableHeaderElement : MamlElement
     {
-        public TableHeaderElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public TableHeaderElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -222,7 +229,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class EntryElement : MamlElement
     {
-        public EntryElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public EntryElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -239,11 +246,9 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ParaElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
 
-        public ParaElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ParaElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -260,12 +265,10 @@ namespace SandcastleToDocFx.Sandcastle
     public class RichParaElement : MamlElement
     {
         public bool IsTableElement { get; set; }
-        public bool RequiresIndentation { get; set; }
 
-        public RichParaElement(XElement element, bool isTableElement = false, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public RichParaElement(XElement element, bool isTableElement = false, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
             this.IsTableElement = isTableElement;
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -284,7 +287,7 @@ namespace SandcastleToDocFx.Sandcastle
     {
         public bool IsOnlyLink { get; set; }
 
-        public LinkElement(XElement element, bool isOnlyLink, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public LinkElement(XElement element, bool isOnlyLink, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
             this.IsOnlyLink = isOnlyLink;
         }
@@ -302,7 +305,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ListElement : MamlElement
     {
-        public ListElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ListElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -319,7 +322,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ListItemElement : MamlElement
     {
-        public ListItemElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ListItemElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -337,7 +340,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CodeInlineElement : MamlElement
     {
-        public CodeInlineElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public CodeInlineElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -354,7 +357,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class LegacyBoldElement : MamlElement
     {
-        public LegacyBoldElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public LegacyBoldElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -371,7 +374,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class LegacyItalicElement : MamlElement
     {
-        public LegacyItalicElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public LegacyItalicElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -388,7 +391,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ExternalLinkElement : MamlElement
     {
-        public ExternalLinkElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ExternalLinkElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -405,11 +408,8 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CodeElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
-
-        public CodeElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public CodeElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -425,7 +425,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ProcedureElement : MamlElement
     {
-        public ProcedureElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ProcedureElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -442,11 +442,8 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class MediaLinkElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
-
-        public MediaLinkElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public MediaLinkElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -462,11 +459,8 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ImageElement : MamlElement
     {
-        public bool RequiresIndentation { get; set; }
-
-        public ImageElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ImageElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
-            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -484,7 +478,7 @@ namespace SandcastleToDocFx.Sandcastle
     {
         public Heading Heading { get; set; }
 
-        public TitleElement(XElement element, Heading heading, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public TitleElement(XElement element, Heading heading, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
             this.Heading = heading;
         }
@@ -502,7 +496,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class TokenElement : MamlElement
     {
-        public TokenElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public TokenElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -519,7 +513,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CommandElement : MamlElement
     {
-        public CommandElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public CommandElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -536,8 +530,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CodeEntityReferenceElement : MamlElement
     {
-        public CodeEntityReferenceElement(XElement element, bool shouldLineBreak = false) : base(element,
-            shouldLineBreak)
+        public CodeEntityReferenceElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation, shouldLineBreak)
         {
         }
 
@@ -554,7 +547,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class StepsElement : MamlElement
     {
-        public StepsElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public StepsElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -571,7 +564,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class StepElement : MamlElement
     {
-        public StepElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public StepElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 
@@ -588,7 +581,7 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ConclusionElement : MamlElement
     {
-        public ConclusionElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public ConclusionElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
         }
 

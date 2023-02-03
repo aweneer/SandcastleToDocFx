@@ -209,15 +209,15 @@ namespace SandcastleToDocFx.Visitors
                     case ElementType.CodeEntityReference:
                         // TODO: naming of these 3 methods.
                         WriteRelatedTopicsReferenceHeader(ref relatedTopics);
-                        mamlElementType = new CodeEntityReferenceElement(element, true);
+                        mamlElementType = new CodeEntityReferenceElement(element, false, true);
                         break;
                     case ElementType.ExternalLink:
                         WriteRelatedTopicsResourcesHeader(ref relatedTopics);
-                        mamlElementType = new ExternalLinkElement(element, true);
+                        mamlElementType = new ExternalLinkElement(element, false, true);
                         break;
                     case ElementType.Link:
                         WriteRelatedTopicsResourcesHeader(ref relatedTopics);
-                        mamlElementType = new LinkElement(element, false, true);
+                        mamlElementType = new LinkElement(element, false, false, true);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <RelatedTopics>.");
@@ -285,7 +285,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new StepsElement(element);
                         break;
                     case ElementType.Table:
-                        mamlElementType = new TableElement(element, true);
+                        mamlElementType = new TableElement(element, false, true);
                         break;
                     case ElementType.Title:
                         mamlElementType = new TitleElement(element, Heading.H2);
@@ -312,7 +312,7 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.Step:
-                        var step = new StepElement(stepElement, true);
+                        var step = new StepElement(stepElement, stepsElement.RequiresIndentation, true);
                         step.Accept(this);
                         break;
                     default:
@@ -652,7 +652,7 @@ namespace SandcastleToDocFx.Visitors
                                 mamlElementType = new LinkElement(elementFromNode, isOnlyLink);
                                 break;
                             case ElementType.Command:
-                                mamlElementType = new CommandElement(elementFromNode, true);
+                                mamlElementType = new CommandElement(elementFromNode, false, true);
                                 break;
                             case ElementType.Code:
                                 mamlElementType = new CodeElement(elementFromNode);
@@ -859,7 +859,7 @@ namespace SandcastleToDocFx.Visitors
                 {
                     case ElementType.ListItem:
                         MarkdownWriter.StartUnorderedListItem();
-                        var listItemElement = new ListItemElement(listItem, true);
+                        var listItemElement = new ListItemElement(listItem, list.RequiresIndentation, true);
                         listItemElement.Accept(this);
                         break;
                     default:
