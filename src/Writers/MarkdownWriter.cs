@@ -42,9 +42,11 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.Append(character);
         }
 
-        public static void Append(string value)
+        public static void Append(string value, bool trim = true, bool requiresIndentation = false)
         {
-            StringBuilder.Append(value.Trim());
+            var indent = requiresIndentation ? Indentation : null;
+            var trimmedValue = trim ? value.Trim() : value;
+            StringBuilder.Append($"{indent}{trimmedValue}");
         }
 
         public static void WriteHeading1(string value)
@@ -117,10 +119,11 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"{position}. {value}");
         }
 
-        public static void AppendAlert(string? alertType = null)
+        public static void AppendAlert(string? alertType = null, bool requiresIndentation = false)
         {
-            StringBuilder.AppendLine($">[!{alertType?.ToUpperInvariant()}]");
-            StringBuilder.Append(">");
+            var indent = requiresIndentation ? Indentation : null;
+            StringBuilder.AppendLine($"{indent}>[!{alertType?.ToUpperInvariant()}]");
+            StringBuilder.Append($"{indent}>");
         }
 
         public static void StartUnorderedListItem()
@@ -132,24 +135,63 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.Append($"{position}. ");
         }
 
-        public static void WriteCodeFromSourceFile(string sourceCodeFilePath, string language)
+        public static void WriteCsodeFromSourceFile(string sourceCodeFilePath, string language, bool indent)
         {
-            var code = File.Exists(sourceCodeFilePath)
-                ? File.ReadAllText(sourceCodeFilePath)
-                : $"Missing source code at: '{sourceCodeFilePath}'.";
+            var code = Utilities.ReadCodeFromSourceFile(sourceCodeFilePath);
             
             StringBuilder.AppendLine(@$"```{language}
 {code}
 ```");
         }
 
-        public static void WriteCodeFromText(string sourceCodeText, string language)
+        public static void WriteCsodeFromText(string sourceCodeText, string language, bool indent)
         {
 
             StringBuilder.AppendLine(@$"```{language}
 {sourceCodeText.Trim()}
 ```");
         }
+
+        public static void WriteCodeFromSourceFile(string sourceCodeFilePath, string language, bool shouldIndent)
+        {
+            var indent = shouldIndent ? Indentation : null;
+            var code = Utilities.ReadCodeFromSourceFile(sourceCodeFilePath).TrimStart();
+
+            StringBuilder.AppendLine($"{indent}```{language}");
+
+            using (StringReader reader = new StringReader(code))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    StringBuilder.AppendLine($"{indent}{line}");
+                }
+            }
+
+            StringBuilder.AppendLine($"{indent}```");
+        }
+
+        // TODO: Remove redundancy of this method.
+        public static void WriteCodeFromText(string sourceCode, string language, bool shouldIndent)
+        {
+            string indent = shouldIndent ? "    " : "";
+            sourceCode = sourceCode.TrimStart();
+
+            StringBuilder.AppendLine($"{indent}```{language}");
+
+            using (StringReader reader = new StringReader(sourceCode))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    StringBuilder.AppendLine($"{indent}{line}");
+                }
+            }
+
+            StringBuilder.AppendLine($"{indent}```");
+        }
+
+        
 
         public static void StartMarkdownMetadata()
         {
@@ -186,10 +228,14 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendImage(
             string filePath,
+            bool requiresIndentation = false,
             string imageName = "Image")
         {
-            StringBuilder.AppendLine($"![{imageName}]({filePath})");
+            var indent = requiresIndentation ? Indentation : null;
+            StringBuilder.AppendLine($"{indent}![{imageName}]({filePath})");
         }
+
+        public static string Indentation { get; set; } = "    ";
 
         public static void AppendCodeEntityReference(string codeEntityReference)
         {
@@ -215,11 +261,11 @@ namespace SandcastleToDocFx.Writers
         {
             if (lineBreaks)
             {
-                StringBuilder.AppendLine($"[{value}]({link})");
+                StringBuilder.AppendLine($"[{value.Trim()}]({link})");
             }
             else
             {
-                StringBuilder.Append($"[{value}]({link})");
+                StringBuilder.Append($"[{value.Trim()}]({link})");
             }
         }
         public static void WriteLinkWithTitle(string value, string link, string title)

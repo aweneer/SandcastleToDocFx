@@ -22,8 +22,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class AlertElement : MamlElement
     {
-        public AlertElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+
+        public AlertElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -149,8 +152,10 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ContentElement : MamlElement
     {
-        public ContentElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+        public ContentElement(XElement element, bool requiresIndentation = false ,bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -234,8 +239,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ParaElement : MamlElement
     {
-        public ParaElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+
+        public ParaElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -252,10 +260,12 @@ namespace SandcastleToDocFx.Sandcastle
     public class RichParaElement : MamlElement
     {
         public bool IsTableElement { get; set; }
+        public bool RequiresIndentation { get; set; }
 
-        public RichParaElement(XElement element, bool isTableElement = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public RichParaElement(XElement element, bool isTableElement = false, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
             this.IsTableElement = isTableElement;
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -395,8 +405,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class CodeElement : MamlElement
     {
-        public CodeElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+
+        public CodeElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -429,8 +442,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class MediaLinkElement : MamlElement
     {
-        public MediaLinkElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+
+        public MediaLinkElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)
@@ -446,8 +462,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ImageElement : MamlElement
     {
-        public ImageElement(XElement element, bool shouldLineBreak = false) : base(element, shouldLineBreak)
+        public bool RequiresIndentation { get; set; }
+
+        public ImageElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, shouldLineBreak)
         {
+            this.RequiresIndentation = requiresIndentation;
         }
 
         public override void Accept(Visitor visitor)

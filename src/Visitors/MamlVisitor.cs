@@ -24,7 +24,7 @@ namespace SandcastleToDocFx.Visitors
         public override void Visit(AlertElement alert)
         {
             var alertType = alert.Element.Attribute("class")?.Value;
-            MarkdownWriter.AppendAlert(alertType);
+            MarkdownWriter.AppendAlert(alertType, alert.RequiresIndentation);
 
             foreach (var element in alert.Element.Elements())
             {
@@ -64,12 +64,12 @@ namespace SandcastleToDocFx.Visitors
                 var sourceCodeFile = Path.Combine(Program.SourceCodeDirectory, source);
                 
                 // TODO: Generate .cs file.
-
-                MarkdownWriter.WriteCodeFromSourceFile(sourceCodeFile, language ?? "");   
+                MarkdownWriter.WriteCodeFromSourceFile(sourceCodeFile, language ?? "", code.RequiresIndentation);   
             }
             else if (!string.IsNullOrWhiteSpace(code.Element.Value))
             {
-                MarkdownWriter.WriteCodeFromText(code.Element.Value, language ?? "");   
+                var codeText = code.Element.Value;
+                MarkdownWriter.WriteCodeFromText(codeText, language ?? "", code.RequiresIndentation);   
             }
 
             MarkdownWriter.AppendLine();
@@ -253,23 +253,24 @@ namespace SandcastleToDocFx.Visitors
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 MamlElement? mamlElementType = null;
-                
+                var requiresIndentation =
+                    content.RequiresIndentation && element != content.Element.Elements().First();
                 switch (type)
                 {
                     case ElementType.Alert:
-                        mamlElementType = new AlertElement(element);
+                        mamlElementType = new AlertElement(element, requiresIndentation);
                         break;
                     case ElementType.Code:
-                        mamlElementType = new CodeElement(element);
+                        mamlElementType = new CodeElement(element, content.RequiresIndentation);
                         break;
                     case ElementType.List:
                         mamlElementType = new ListElement(element);
                         break;
                     case ElementType.MediaLink:
-                        mamlElementType = new MediaLinkElement(element);
+                        mamlElementType = new MediaLinkElement(element, content.RequiresIndentation);
                         break;
                     case ElementType.Para:
-                        mamlElementType = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                        mamlElementType = element.HasElements ? new RichParaElement(element, false, requiresIndentation) : new ParaElement(element, requiresIndentation);
                         break;
                     case ElementType.Procedure:
                         mamlElementType = new ProcedureElement(element);
@@ -331,7 +332,7 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.Content:
-                        mamlElementType = new ContentElement(element);
+                        mamlElementType = new ContentElement(element, true);
                         break;
                     case ElementType.Para:
                         mamlElementType = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
@@ -464,7 +465,7 @@ namespace SandcastleToDocFx.Visitors
 
             var imageFilePath = Utilities.GetRelativePathOfReferencedImage(imageReference, "png");
 
-            MarkdownWriter.AppendImage(imageFilePath);
+            MarkdownWriter.AppendImage(imageFilePath, image.RequiresIndentation);
         }
 
         public override void Visit(TableHeaderElement content)
@@ -544,6 +545,7 @@ namespace SandcastleToDocFx.Visitors
 
                 mamlElementType.Accept(this);
                 if ( i + 1 < elementsCount ) {
+                    Console.WriteLine(element);
                     MarkdownWriter.Append("<br>");
                 }
             }
@@ -574,6 +576,11 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(ParaElement para)
         {
+            if (para.RequiresIndentation)
+            {
+                MarkdownWriter.Append(string.Empty, true, para.RequiresIndentation);
+            }
+            
             // Para contains only text, so we add a space behind.
             if (!para.Element.HasElements)
             {
@@ -617,6 +624,11 @@ namespace SandcastleToDocFx.Visitors
         
         public override void Visit(RichParaElement richPara)
         {
+            if (richPara.RequiresIndentation)
+            {
+                MarkdownWriter.Append(string.Empty, true, richPara.RequiresIndentation);
+            }
+            
             var nodesCount = richPara.Element.Nodes().Count();
 
             // Para contains an element (and possibly even text).
@@ -636,8 +648,8 @@ namespace SandcastleToDocFx.Visitors
                         {
                             case ElementType.Link:
                                 var isOnlyLink = richPara.Element.Nodes().All(n => n.NodeType == XmlNodeType.Element);
-                                var shouldLineBreak = richPara.Element.Parent!.Name.LocalName != "entry";
-                                mamlElementType = new LinkElement(elementFromNode, isOnlyLink, shouldLineBreak);
+                                //var shouldLineBreak = richPara.Element.Parent!.Name.LocalName != "entry"; // TODO: Check if this needs to work
+                                mamlElementType = new LinkElement(elementFromNode, isOnlyLink);
                                 break;
                             case ElementType.Command:
                                 mamlElementType = new CommandElement(elementFromNode, true);
@@ -707,7 +719,6 @@ namespace SandcastleToDocFx.Visitors
                 {
                     skipSpace = Utilities.TextStartsWithPunctuation(node.NextNode.ToString()) || Utilities.TextStartsWithEnclosingGlyphs(node.NextNode.ToString());
                 }
-                
 
                 if (nodesCount > 1 && !skipSpace)
                 {
@@ -782,10 +793,10 @@ namespace SandcastleToDocFx.Visitors
                 var doc = XDocument.Load(document);
 
                 var element = doc.Root!.Elements().SingleOrDefault(e => e.Attribute("id")?.Value == tokenName);
-
+                
                 if (element != null)
                 {
-                    MamlElement mamlElement = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                    MamlElement mamlElement = element.HasElements ? new RichParaElement(element, true) : new ParaElement(element);
                     mamlElement.Accept(this);
                     break;
                 }

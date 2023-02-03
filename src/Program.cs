@@ -32,7 +32,7 @@ namespace SandcastleToDocFx
             // TODO: Foreach *.aml file in args[1]
 
             // SandcastleToDocFxExport\conceptual == PostSharp.Documentation\Source
-            var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport";
+            var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport\\conceptual";
             
             Directory.Delete(destination, true);
 

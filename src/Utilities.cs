@@ -34,12 +34,21 @@ namespace SandcastleToDocFx
         
         public static bool TextStartsWithEnclosingGlyphs(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
             var enclosingGlyphs = new[] {')', ']', '>', '}'};
             return enclosingGlyphs.Any(symbol => symbol.Equals(text[0]));
         }
         
         public static bool TextEndsWithEnclosingGlyphs(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
             var punctuationSymbols = new[] {'(', '[', '<', '{'};
             return punctuationSymbols.Any(symbol => symbol.Equals(text[^1]));
         }
@@ -152,6 +161,14 @@ namespace SandcastleToDocFx
             imageFilePath = imageFilePath.Replace(@"\", "/");
 
             return imageFilePath;
+        }
+
+        
+        public static string ReadCodeFromSourceFile(string sourceCodeFilePath)
+        {
+            return File.Exists(sourceCodeFilePath)
+                ? File.ReadAllText(sourceCodeFilePath)
+                : $"Missing source code at: '{sourceCodeFilePath}'.";
         }
     }
 }
