@@ -205,7 +205,6 @@ namespace SandcastleToDocFx.Visitors
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 MamlElement? mamlElementType;
-
                 switch (type)
                 {
                     case ElementType.CodeEntityReference:
@@ -226,7 +225,11 @@ namespace SandcastleToDocFx.Visitors
                 }
 
                 mamlElementType?.Accept(this);
-                MarkdownWriter.AppendLine();
+                if (relatedTopics.IsReferenceAppended || relatedTopics.IsOtherResourcesAppended)
+                {
+                    MarkdownWriter.Append("<br>");
+                }
+
             }
         }
 
@@ -591,11 +594,22 @@ namespace SandcastleToDocFx.Visitors
             {
                 MarkdownWriter.Append(string.Empty, true, para.RequiresIndentation);
             }
+
+            var paraElementValue = para.Element.Value;
             
+            if (para.Element.Parent != null && paraElementValue.Length > 1)
+            {
+                Utilities.ParseEnum(para.Element.Parent.Name.LocalName, out ElementType parentType);
+                if (parentType == ElementType.Alert)
+                {
+                    paraElementValue = Utilities.EscapeSpecialMarkdownCharactersAtStart(paraElementValue);
+                }
+            }
+
             // Para contains only text, so we add a space behind.
             if (!para.Element.HasElements)
             {
-                var normalizedText = Utilities.NormalizeTextSpaces(para.Element.Value);
+                var normalizedText = Utilities.NormalizeTextSpaces(paraElementValue);
                 MarkdownWriter.Append(normalizedText);
 
                 if (para.Element.Parent != null && para.Element.Parent.Name.LocalName != "entry")

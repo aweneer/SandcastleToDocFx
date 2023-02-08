@@ -26,6 +26,18 @@ namespace SandcastleToDocFx
             return string.Join(" ", originalText.Split(Array.Empty<char>(), StringSplitOptions.RemoveEmptyEntries).ToList().Select(word => word));
         }
 
+        public static string EscapeSpecialMarkdownCharactersAtStart(string text)
+        {
+            var trimmedText = text.TrimStart();
+            var specialCharacters = new[] {'*', '>', '`'};
+            if (specialCharacters.Any(character => character.Equals(trimmedText[0])) && !specialCharacters.Any(character => character.Equals(trimmedText[1])))
+            {
+                return @$"\{trimmedText}";
+            }
+
+            return text;
+        }
+
         public static bool TextStartsWithPunctuation(string text)
         {
             var punctuationSymbols = new[] {',', '.', ';', ':'};
