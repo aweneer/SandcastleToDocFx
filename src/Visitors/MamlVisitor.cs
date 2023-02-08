@@ -24,7 +24,7 @@ namespace SandcastleToDocFx.Visitors
         public override void Visit(AlertElement alert)
         {
             var alertType = alert.Element.Attribute("class")?.Value;
-            MarkdownWriter.AppendAlert(alertType, alert.RequiresIndentation);
+            MarkdownWriter.AppendAlert(alertType ?? "NOTE", alert.RequiresIndentation);
 
             foreach (var element in alert.Element.Elements())
             {
@@ -890,6 +890,8 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.ListItem:
+                        // TODO:
+                        //MarkdownWriter.StartOrderedListItem( 1 );
                         MarkdownWriter.StartUnorderedListItem(list.RequiresIndentation);
                         var listItemElement = new ListItemElement(listItem, false, list.RequiresIndentation, true);
                         listItemElement.Accept(this);
