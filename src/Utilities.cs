@@ -117,8 +117,6 @@ namespace SandcastleToDocFx
             return sb.ToString();
         }
 
-        public static HashSet<string> langs = new();
-
         public static string ReplaceLanguage(string language)
         {
             if (string.IsNullOrEmpty(language))
@@ -128,8 +126,8 @@ namespace SandcastleToDocFx
 
             var mamlByMarkdown = new Dictionary<string, string>()
             {
-                {"csharp", "cs"},
-                {"c#", "cs"},
+                //{"csharp", "cs"}, // csharp itself should be correct.
+                {"c#", "csharp"},
                 {"xaml", "xml"}
             };
 

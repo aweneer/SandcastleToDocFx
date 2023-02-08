@@ -28,9 +28,11 @@ namespace SandcastleToDocFx.Writers
             }
         }
 
-        public static void AppendLine(string? value = null)
+        public static void AppendLine(string value = "", bool trim = true, bool requiresIndentation = false)
         {
-            StringBuilder.AppendLine(value);
+            var indent = requiresIndentation ? Indentation : null;
+            var trimmedValue = trim ? value.Trim() : value;
+            StringBuilder.AppendLine($"{indent}{trimmedValue}");
         }
 
         public static void AppendCode(string code)
@@ -122,13 +124,14 @@ namespace SandcastleToDocFx.Writers
         public static void AppendAlert(string? alertType = null, bool requiresIndentation = false)
         {
             var indent = requiresIndentation ? Indentation : null;
-            StringBuilder.AppendLine($"{indent}>[!{alertType?.ToUpperInvariant()}]");
-            StringBuilder.Append($"{indent}>");
+            StringBuilder.AppendLine($"{indent}> [!{alertType?.ToUpperInvariant()}]");
+            StringBuilder.Append($"{indent}> ");
         }
 
-        public static void StartUnorderedListItem()
+        public static void StartUnorderedListItem(bool requiresIndentation = false)
         {
-            StringBuilder.Append("* ");
+            var indent = requiresIndentation ? Indentation : null;
+            StringBuilder.Append($"{indent}* ");
         }
         public static void StartOrderedListItem(int position)
         {
@@ -175,7 +178,7 @@ namespace SandcastleToDocFx.Writers
         public static void WriteCodeFromText(string sourceCode, string language, bool shouldIndent)
         {
             string indent = shouldIndent ? "    " : "";
-            sourceCode = sourceCode.TrimStart();
+            sourceCode = sourceCode.TrimStart().TrimEnd();
 
             StringBuilder.AppendLine($"{indent}```{language}");
 
@@ -228,11 +231,10 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendImage(
             string filePath,
-            bool requiresIndentation = false,
-            string imageName = "Image")
+            bool requiresIndentation = false)
         {
             var indent = requiresIndentation ? Indentation : null;
-            StringBuilder.AppendLine($"{indent}![{imageName}]({filePath})");
+            StringBuilder.AppendLine($"{indent}![{filePath}]({filePath})");
         }
 
         public static string Indentation { get; set; } = "    ";

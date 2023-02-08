@@ -33,6 +33,7 @@ namespace SandcastleToDocFx
 
             // SandcastleToDocFxExport\conceptual == PostSharp.Documentation\Source
             var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport\\conceptual";
+            var destinationDirectoryInfo = new DirectoryInfo(destination);
             
             Directory.Delete(destination, true);
 
@@ -40,13 +41,16 @@ namespace SandcastleToDocFx
             {
                 Directory.CreateDirectory(destination);
             }
+            var sourceDirectory = "C:\\src\\PostSharp.Documentation\\Source";
+            var sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
 
             var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\toc.content");
-            var yamlWriter = new YamlWriter();
+            var yamlWriter = new YamlWriter( sourceDirectoryInfo, destinationDirectoryInfo );
 
             foreach (var topic in tocDocument.Root.Elements())
             {
-                yamlWriter.ProcessTopic(topic);
+                yamlWriter.ProcessTopic(topic, "", true);
+                //yamlWriter.CreateRootToc(topic, yamlWriter.SourceDirectory, true);
             }
 
             yamlWriter.WriteYamlFile(Path.Combine(destination, "toc.yml"));
@@ -55,8 +59,7 @@ namespace SandcastleToDocFx
             var visitor = new MamlVisitor();
 
             // Replace with command argument.
-            var sourceDirectory = "C:\\src\\PostSharp.Documentation\\Source";
-            var sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
+
 
             DocumentationFilesDirectory = sourceDirectoryInfo;
             SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";

@@ -127,6 +127,7 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(TitleElement title)
         {
+            MarkdownWriter.AppendLine();
             switch (title.Heading)
             {
                 case Heading.H1:
@@ -159,7 +160,8 @@ namespace SandcastleToDocFx.Visitors
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 MamlElement? mamlElementType = null;
-
+                var requiresIndentation =
+                    introduction.RequiresIndentation && element != introduction.Element.Elements().First();
                 switch (type)
                 {
                     case ElementType.Alert:
@@ -172,7 +174,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new ListElement(element);
                         break;
                     case ElementType.Para:
-                        mamlElementType = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                        mamlElementType = element.HasElements ? new RichParaElement(element, false, requiresIndentation, true) : new ParaElement(element, requiresIndentation, true);
                         break;
                     case ElementType.Procedure:
                         mamlElementType = new ProcedureElement(element);
@@ -258,37 +260,47 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.Alert:
+                        // TODO: Move to separate method.
+                        var previousSiblingElement = element.PreviousNode;
+                        if (previousSiblingElement != null)
+                        {
+                            var previousElementIsAlert = XElement.Parse(previousSiblingElement.ToString()).Name.LocalName == "alert";
+                            if (requiresIndentation && previousElementIsAlert)
+                            {
+                                MarkdownWriter.AppendLine("---", true, true);
+                            }
+                        }
                         mamlElementType = new AlertElement(element, requiresIndentation);
                         break;
                     case ElementType.Code:
-                        mamlElementType = new CodeElement(element, content.RequiresIndentation);
+                        mamlElementType = new CodeElement(element, requiresIndentation);
                         break;
                     case ElementType.List:
-                        mamlElementType = new ListElement(element);
+                        mamlElementType = new ListElement(element, requiresIndentation);
                         break;
                     case ElementType.MediaLink:
-                        mamlElementType = new MediaLinkElement(element, content.RequiresIndentation);
+                        mamlElementType = new MediaLinkElement(element, requiresIndentation, true);
                         break;
                     case ElementType.Para:
-                        mamlElementType = element.HasElements ? new RichParaElement(element, false, requiresIndentation) : new ParaElement(element, requiresIndentation);
+                        mamlElementType = element.HasElements ? new RichParaElement(element, false, requiresIndentation, true) : new ParaElement(element, requiresIndentation, true);
                         break;
                     case ElementType.Procedure:
-                        mamlElementType = new ProcedureElement(element);
+                        mamlElementType = new ProcedureElement(element, requiresIndentation);
                         break;
                     case ElementType.Section:
-                        mamlElementType = new SectionElement(element);
+                        mamlElementType = new SectionElement(element, requiresIndentation);
                         break;
                     case ElementType.Sections:
-                        mamlElementType = new SectionsElement(element);
+                        mamlElementType = new SectionsElement(element, requiresIndentation);
                         break;
                     case ElementType.Steps:
-                        mamlElementType = new StepsElement(element);
+                        mamlElementType = new StepsElement(element, requiresIndentation);
                         break;
                     case ElementType.Table:
-                        mamlElementType = new TableElement(element, false, true);
+                        mamlElementType = new TableElement(element, requiresIndentation, true);
                         break;
                     case ElementType.Title:
-                        mamlElementType = new TitleElement(element, Heading.H2);
+                        mamlElementType = new TitleElement(element, Heading.H2, requiresIndentation);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <Content>.");
@@ -413,7 +425,7 @@ namespace SandcastleToDocFx.Visitors
                         mamlElementType = new CaptionElement(element);
                         break;
                     case ElementType.Image:
-                        mamlElementType = new ImageElement(element, true);
+                        mamlElementType = new ImageElement(element, mediaLink.RequiresIndentation);
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <MediaLink>.");
@@ -545,7 +557,6 @@ namespace SandcastleToDocFx.Visitors
 
                 mamlElementType.Accept(this);
                 if ( i + 1 < elementsCount ) {
-                    Console.WriteLine(element);
                     MarkdownWriter.Append("<br>");
                 }
             }
@@ -858,7 +869,7 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.ListItem:
-                        MarkdownWriter.StartUnorderedListItem();
+                        MarkdownWriter.StartUnorderedListItem(list.RequiresIndentation);
                         var listItemElement = new ListItemElement(listItem, list.RequiresIndentation, true);
                         listItemElement.Accept(this);
                         break;
