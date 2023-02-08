@@ -584,7 +584,7 @@ namespace SandcastleToDocFx.Visitors
             }
             else
             {
-                MarkdownWriter.WriteXref(linkHref.Value);
+                MarkdownWriter.WriteXref(linkHref.Value, true);
             }
         }
 

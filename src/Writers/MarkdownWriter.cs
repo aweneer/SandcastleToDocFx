@@ -255,20 +255,20 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine("---");
         }
 
-        public static void WriteXref(string value)
+        public static void WriteXref(string value, bool trim = false)
         {
-            StringBuilder.Append($"<xref:{value}>");
+            StringBuilder.Append($"<xref:{(trim ? value.Trim() : value)}>");
         }
         
         public static void WriteLink(string value, string link, bool lineBreaks = false)
         {
             if (lineBreaks)
             {
-                StringBuilder.AppendLine($"[{value.Trim()}]({link})");
+                StringBuilder.AppendLine($"[{value.Trim()}]({link.Trim()})");
             }
             else
             {
-                StringBuilder.Append($"[{value.Trim()}]({link})");
+                StringBuilder.Append($"[{value.Trim()}]({link.Trim()})");
             }
         }
         public static void WriteLinkWithTitle(string value, string link, string title)

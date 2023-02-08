@@ -109,7 +109,7 @@ namespace SandcastleToDocFx
 
                 if (titleElement != null && originalLink.Contains(addressAttribute!.Value))
                 {
-                    var titleValue = titleElement.Value;
+                    var titleValue = titleElement.Value.Trim();
                     return (titleValue, titleValue.ToLowerInvariant().Replace(' ', '-'));
                 }
             }
