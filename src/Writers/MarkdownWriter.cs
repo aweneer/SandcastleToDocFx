@@ -39,9 +39,10 @@ namespace SandcastleToDocFx.Writers
         {
             StringBuilder.AppendLine("HERE SHOULD BE CODE, BUT IT IS NOT, BECAUSE IT's NOT WORKING YET");
         }
-        public static void Append(char character)
+        public static void Append(char character, bool requiresIndentation = false)
         {
-            StringBuilder.Append(character);
+            var indent = requiresIndentation ? Indentation : null;
+            StringBuilder.Append($"{indent}{character}");
         }
 
         public static void Append(string value, bool trim = true, bool requiresIndentation = false)

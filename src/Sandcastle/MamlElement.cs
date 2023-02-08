@@ -322,8 +322,11 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ListItemElement : MamlElement
     {
-        public ListItemElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
+        public bool IsOrderedListItem { get; set; }
+
+        public ListItemElement(XElement element, bool isOrderedListItem, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
+            this.IsOrderedListItem = isOrderedListItem;
         }
 
         public override void Accept(Visitor visitor)

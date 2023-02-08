@@ -875,6 +875,13 @@ namespace SandcastleToDocFx.Visitors
         public override void Visit(ListElement list)
         {
             var bulletList = list.Element.Attribute("class")!.Value == "bullet";
+            var orderedList = list.Element.Attribute("class")!.Value == "ordered";
+
+            if (orderedList && list.RequiresIndentation)
+            {
+                AddIndentedOrderedList(list);
+                return;
+            }
 
             foreach (var listItem in list.Element.Elements())
             {
@@ -884,7 +891,31 @@ namespace SandcastleToDocFx.Visitors
                 {
                     case ElementType.ListItem:
                         MarkdownWriter.StartUnorderedListItem(list.RequiresIndentation);
-                        var listItemElement = new ListItemElement(listItem, list.RequiresIndentation, true);
+                        var listItemElement = new ListItemElement(listItem, false, list.RequiresIndentation, true);
+                        listItemElement.Accept(this);
+                        break;
+                    default:
+                        throw new NotSupportedException($"Element type {type} not supported for <list>.");
+                }
+            }
+        }
+
+        public void AddIndentedOrderedList(ListElement list)
+        {
+            var elementsCount = list.Element.Elements().Count();
+            
+            for (int i = 0; i < elementsCount; i++)
+            {
+                var listItem = list.Element.Elements().ToArray()[i];
+                
+                Utilities.ParseEnum(listItem.Name.LocalName, out ElementType type);
+
+                switch (type)
+                {
+                    case ElementType.ListItem:
+                        var listItemEntry = (char) (i + 97) + ". ";
+                        MarkdownWriter.Append(listItemEntry, false, list.RequiresIndentation);
+                        var listItemElement = new ListItemElement(listItem, true, list.RequiresIndentation, true);
                         listItemElement.Accept(this);
                         break;
                     default:
@@ -926,6 +957,11 @@ namespace SandcastleToDocFx.Visitors
                 }
 
                 mamlElement?.Accept(this);
+
+                if (listItem.IsOrderedListItem && element == listItemElement.Elements().First() && listItemElement.Elements().Count() > 1)
+                {
+                    MarkdownWriter.Append("<br>");
+                }
             }
         }
     }

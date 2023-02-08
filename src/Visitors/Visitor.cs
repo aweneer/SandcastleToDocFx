@@ -32,7 +32,7 @@ namespace SandcastleToDocFx.Visitors
         public abstract void Visit(ImageElement image);
         public abstract void Visit(LinkElement link);
         public abstract void Visit(ListElement link);
-        public abstract void Visit(ListItemElement link);
+        public abstract void Visit(ListItemElement listItem);
         public abstract void Visit(MediaLinkElement mediaLink);
         public abstract void Visit(ParaElement para);
         public abstract void Visit(RichParaElement richPara);
