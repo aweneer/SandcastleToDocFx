@@ -275,8 +275,13 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"[{value}]({link} {title})");
         }
 
-        public static void AppendTableHeader(string[] values)
+        public static void AppendTableHeader(string[] values, bool requiresIndentation = false)
         {
+            if (requiresIndentation)
+            {
+                Append("", false, requiresIndentation);
+            }
+            
             // Header
             int[] headerValuesLengths = new int[values.Length];
             
@@ -296,6 +301,11 @@ namespace SandcastleToDocFx.Writers
 
             StringBuilder.Append(" |" + Environment.NewLine);
 
+            if (requiresIndentation)
+            {
+                Append("", false, requiresIndentation);
+            }
+            
             // Header separator
             foreach (var length in headerValuesLengths)
             {
@@ -332,8 +342,12 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.Append(" |" + Environment.NewLine);
         }
 
-        public static void StartTableRow()
+        public static void StartTableRow(bool requiresIndentation = false)
         {
+            if (requiresIndentation)
+            {
+                Append("", false, requiresIndentation);
+            }
             StringBuilder.Append("| ");
         }
         

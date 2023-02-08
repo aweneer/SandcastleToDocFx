@@ -454,10 +454,10 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.TableHeader:
-                        mamlElementType = new TableHeaderElement(element);
+                        mamlElementType = new TableHeaderElement(element, table.RequiresIndentation);
                         break;
                     case ElementType.Row:
-                        mamlElementType = new RowElement(element);
+                        mamlElementType = new RowElement(element, table.RequiresIndentation);
                         break;
                     case ElementType.Title:
                         mamlElementType = new TitleElement(element, Heading.H4);
@@ -483,11 +483,11 @@ namespace SandcastleToDocFx.Visitors
             MarkdownWriter.AppendImage(imageFilePath, image.RequiresIndentation);
         }
 
-        public override void Visit(TableHeaderElement content)
+        public override void Visit(TableHeaderElement tableHeader)
         {
             List<string> entryValues = new();
 
-            foreach (var row in content.Element.Elements())
+            foreach (var row in tableHeader.Element.Elements())
             {
                 foreach (var entry in row.Elements())
                 {
@@ -495,12 +495,12 @@ namespace SandcastleToDocFx.Visitors
                 }
             }
 
-            MarkdownWriter.AppendTableHeader(entryValues.ToArray());
+            MarkdownWriter.AppendTableHeader(entryValues.ToArray(), tableHeader.RequiresIndentation);
         }
 
         public override void Visit(RowElement row)
         {
-            MarkdownWriter.StartTableRow();
+            MarkdownWriter.StartTableRow(row.RequiresIndentation);
 
             var entries = row.Element.Elements().ToArray();
             for (int i = 0; i < entries.Count(); i++)
