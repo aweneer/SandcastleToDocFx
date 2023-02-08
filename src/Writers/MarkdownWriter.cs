@@ -101,9 +101,9 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"> {value}");
         }
 
-        public static void AppendCodeInline(string value)
+        public static void AppendCodeInline(string value, bool trim = false)
         {
-            StringBuilder.Append($"`{value}`");
+            StringBuilder.Append($"`{value.Trim()}`");
         }
 
         public static void StartCodeInline()

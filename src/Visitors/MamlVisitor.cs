@@ -846,7 +846,7 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(CodeInlineElement codeInline)
         {
-            MarkdownWriter.AppendCodeInline(codeInline.Element.Value);
+            MarkdownWriter.AppendCodeInline(codeInline.Element.Value, true);
         }
 
         public override void Visit(LegacyBoldElement bold)

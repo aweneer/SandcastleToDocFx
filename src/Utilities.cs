@@ -126,7 +126,7 @@ namespace SandcastleToDocFx
 
             var mamlByMarkdown = new Dictionary<string, string>()
             {
-                //{"csharp", "cs"}, // csharp itself should be correct.
+                //{"csharp", "cs"}, // TODO: Remove? csharp itself should be correct.
                 {"c#", "csharp"},
                 {"xaml", "xml"}
             };
