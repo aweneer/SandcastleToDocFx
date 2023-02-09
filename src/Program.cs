@@ -9,8 +9,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace SandcastleToDocFx
@@ -26,14 +24,21 @@ namespace SandcastleToDocFx
             // TODO: Finish commandline app.
             //var app = new CommandApp();
             //app.Run(args);
-
             // TODO: Process args
-
             // TODO: Foreach *.aml file in args[1]
 
-            // SandcastleToDocFxExport\conceptual == PostSharp.Documentation\Source
-            var destination = "C:\\Users\\JanHlavac\\Desktop\\SandcastleToDocFxExport\\conceptual";
-            var destinationDirectoryInfo = new DirectoryInfo(destination);
+
+            // Setup directories.
+            var exportDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "SandCastleToDocFx_Export");
+            
+            if (!Directory.Exists(exportDirectory))
+            {
+                Directory.CreateDirectory(exportDirectory);
+            }
+            
+            var destination = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SandCastleToDocFx_Export",
+                "conceptual");
             
             Directory.Delete(destination, true);
 
@@ -41,10 +46,15 @@ namespace SandcastleToDocFx
             {
                 Directory.CreateDirectory(destination);
             }
-            var sourceDirectory = "C:\\src\\PostSharp.Documentation\\Source";
-            var sourceDirectoryInfo = new DirectoryInfo(sourceDirectory);
+            
+            var destinationDirectoryInfo = new DirectoryInfo(destination);
+            var sourceDirectoryInfo = new DirectoryInfo("C:\\src\\PostSharp.Documentation\\Source");
+            DocumentationFilesDirectory = sourceDirectoryInfo;
+            SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";
 
+            // Create toc.yml
             var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\toc.content");
+            
             var yamlWriter = new YamlWriter( sourceDirectoryInfo, destinationDirectoryInfo );
 
             foreach (var topic in tocDocument.Root.Elements())
@@ -56,13 +66,8 @@ namespace SandcastleToDocFx
             yamlWriter.WriteYamlFile(Path.Combine(destination, "toc.yml"));
             
             
+            // Start processing .aml files with visitor.
             var visitor = new MamlVisitor();
-
-            // Replace with command argument.
-
-
-            DocumentationFilesDirectory = sourceDirectoryInfo;
-            SourceCodeDirectory = "C:\\src\\PostSharp.Documentation\\Samples";
             TransformMamlFilesToMarkdown(visitor, sourceDirectoryInfo, destination);
         }
 
@@ -87,15 +92,15 @@ namespace SandcastleToDocFx
 
             foreach (var file in filesToTransform)
             {
-                CurrentConceptualFile = file;
                 var document = XDocument.Load(file.FullName);
+                CurrentConceptualFile = file;
                 CurrentConceptualFileRootElement = document.Root;
-                Console.WriteLine(file);
-                var documentId = CurrentConceptualFileRootElement.Attribute("id");
+                //Console.WriteLine(file);
 
+                // Markdown Metadata
+                var documentId = CurrentConceptualFileRootElement.Attribute("id");
                 MarkdownWriter.StartMarkdownMetadata();
                 MarkdownWriter.AppendMetadataUid(documentId.Value);
-                //Console.WriteLine(documentId);
                 var tocDocument = XDocument.Load("C:\\src\\PostSharp.Documentation\\Source\\TOC.content");
                 var fileTitle = tocDocument
                     .Descendants()
@@ -103,14 +108,15 @@ namespace SandcastleToDocFx
                     .Select(e => e.Attribute("title")?.Value ?? "null")
                     .SingleOrDefault();
 
-                // TODO: Better null/error handling.
                 MarkdownWriter.AppendMetadataTitle(fileTitle);
                 MarkdownWriter.EndMarkdownMetadata();
                 
+                // Add heading for the article based on title from .aml file.
                 if ( !string.IsNullOrEmpty(fileTitle)) {
                     MarkdownWriter.WriteHeading1(fileTitle);
                 }
 
+                // Process content elements in .aml file.
                 foreach (var element in document.Root.Elements().FirstOrDefault().Elements())
                 {
                     if (!Utilities.ParseEnum(element.Name.LocalName, out ElementType parsedElementName))
@@ -149,7 +155,7 @@ namespace SandcastleToDocFx
 
                 }
 
-                MarkdownWriter.WriteFile(destinationDirectory, documentId.Value);
+                MarkdownWriter.WriteFile(destinationDirectory, documentId.Value == "postsharp" ? "index" : documentId.Value);
             }
 
             foreach (var subdirectory in sourceDirectory.GetDirectories())
