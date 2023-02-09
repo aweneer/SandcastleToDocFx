@@ -860,7 +860,8 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(CodeInlineElement codeInline)
         {
-            MarkdownWriter.AppendCodeInline(codeInline.Element.Value, true);
+            var codeInlineText = codeInline.Element.Value;
+            MarkdownWriter.AppendCodeInline(codeInlineText, true, codeInlineText.Contains('`'));
         }
 
         public override void Visit(LegacyBoldElement bold)
@@ -939,17 +940,20 @@ namespace SandcastleToDocFx.Visitors
                 return;
             }
 
-            foreach (var element in listItem.Element.Elements())
+            var requiresIndentation = false;
+
+            foreach (var element in listItemElement.Elements())
             {
+                
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
 
                 switch (type)
                 {
                     case ElementType.Para:
-                        mamlElement = element.HasElements ? new RichParaElement(element) : new ParaElement(element);
+                        mamlElement = element.HasElements ? new RichParaElement(element, false, requiresIndentation) : new ParaElement(element, requiresIndentation);
                         break;
                     case ElementType.Code:
-                        mamlElement = new CodeElement(element);
+                        mamlElement = new CodeElement(element, requiresIndentation);
                         break;
                     case ElementType.List:
                         mamlElement = new ListElement(element);
@@ -963,6 +967,11 @@ namespace SandcastleToDocFx.Visitors
                 if (listItem.IsOrderedListItem && element == listItemElement.Elements().First() && listItemElement.Elements().Count() > 1)
                 {
                     MarkdownWriter.Append("<br>");
+                }
+
+                if (!listItem.IsOrderedListItem && element == listItemElement.Elements().First())
+                {
+                    requiresIndentation = true;
                 }
             }
         }

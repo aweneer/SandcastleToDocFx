@@ -68,8 +68,8 @@ namespace SandcastleToDocFx
         public static string NormalizeCodeEntityReference(string originalReference)
         {
             string cleanCodeEntityReference = originalReference.Trim();
-            
-            var types = new[] {"E:", "F:", "M:", "N:", "P:", "R:", "T:", "Overload:"};
+
+            var types = new[] {"E:", "F:", "M:", "N:", "P:", "R:", "T:",};
             var type = types.FirstOrDefault(symbol => cleanCodeEntityReference.StartsWith(symbol));
 
             // Clean reference of type.
@@ -78,17 +78,13 @@ namespace SandcastleToDocFx
                 cleanCodeEntityReference = cleanCodeEntityReference.Remove(0, type!.Length).Trim();
             }
 
-            // TODO: Verify this is needed.
-            // Replace backtick with dash.
-            //cleanCodeEntityReference = cleanCodeEntityReference.Replace("`", "-");
-
-            // Remove method argument.
-            var bracketsPosition = cleanCodeEntityReference.IndexOf('(');
-
-            // if (bracketsPosition != -1)
-            // {
-            //     cleanCodeEntityReference = cleanCodeEntityReference.Remove(bracketsPosition);
-            // }
+            // Resolve overload of member.
+            var overload = "Overload:";
+            if (cleanCodeEntityReference.StartsWith(overload) && !cleanCodeEntityReference.EndsWith('*'))
+            {
+                cleanCodeEntityReference = cleanCodeEntityReference.Remove(0, overload.Length).Trim();
+                cleanCodeEntityReference += "*";
+            }
 
             return cleanCodeEntityReference;
         }
@@ -164,7 +160,7 @@ namespace SandcastleToDocFx
 
             if (imageFilePath == null)
             {
-                throw new NotSupportedException($"No image file '{imageFile}' was found in {Program.DocumentationFilesDirectory}.");
+                throw new NotSupportedException($"No image file '{imageFile}' was found in '{Program.DocumentationFilesDirectory}'.");
             }
 
             imageFilePath = Path.GetRelativePath(Program.CurrentConceptualFile.Directory.FullName, imageFilePath);
@@ -176,6 +172,16 @@ namespace SandcastleToDocFx
         
         public static string ReadCodeFromSourceFile(string sourceCodeFilePath)
         {
+            if (!File.Exists(sourceCodeFilePath))
+            {
+                if (sourceCodeFilePath.Contains("PostSharp.Samples"))
+                {
+                    var index = sourceCodeFilePath.IndexOf("PostSharp.Samples", StringComparison.Ordinal);
+                    sourceCodeFilePath = Path.Combine("C:", "src",
+                        sourceCodeFilePath.Substring(index, sourceCodeFilePath.Length - index));
+                }
+            }
+
             return File.Exists(sourceCodeFilePath)
                 ? File.ReadAllText(sourceCodeFilePath)
                 : $"Missing source code at: '{sourceCodeFilePath}'.";

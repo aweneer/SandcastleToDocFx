@@ -43,7 +43,7 @@ public class YamlWriter
         }
 
         StringBuilder.AppendLine($"{indentation}- name: {topicTitle}");
-        StringBuilder.AppendLine($"{indentation}  topicUid: {topicId}");
+        StringBuilder.AppendLine($"{indentation}  topicUid: {(topicId == "postsharp" ? "index" : topicId)}");
         if (topic.HasElements)
         {
             StringBuilder.AppendLine($"{indentation}  items:");
