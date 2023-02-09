@@ -40,12 +40,13 @@ namespace SandcastleToDocFx
             var destination = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SandCastleToDocFx_Export",
                 "conceptual");
             
-            Directory.Delete(destination, true);
-
-            if (!Directory.Exists(destination))
+            if (Directory.Exists(destination))
             {
-                Directory.CreateDirectory(destination);
+                Directory.Delete(destination, true);
             }
+
+            Directory.CreateDirectory(destination);
+            
             
             var destinationDirectoryInfo = new DirectoryInfo(destination);
             var sourceDirectoryInfo = new DirectoryInfo("C:\\src\\PostSharp.Documentation\\Source");
@@ -69,11 +70,11 @@ namespace SandcastleToDocFx
             // Start processing .aml files with visitor.
             var visitor = new MamlVisitor();
             TransformMamlFilesToMarkdown(visitor, sourceDirectoryInfo, destination);
+            Console.WriteLine($"Exporting .aml files to .md completed in '{destination}'.");
         }
 
         public static void TransformMamlFilesToMarkdown(MamlVisitor visitor, DirectoryInfo sourceDirectory, string destinationDirectory)
         {
-
             if (!Directory.Exists(destinationDirectory))
             {
                 Directory.CreateDirectory(destinationDirectory);
