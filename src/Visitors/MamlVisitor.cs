@@ -416,6 +416,7 @@ namespace SandcastleToDocFx.Visitors
 
         public override void Visit(MediaLinkElement mediaLink)
         {
+            string? caption = null;
             foreach (var element in mediaLink.Element.Elements())
             {
                 Utilities.ParseEnum(element.Name.LocalName, out ElementType type);
@@ -425,10 +426,11 @@ namespace SandcastleToDocFx.Visitors
                 switch (type)
                 {
                     case ElementType.Caption:
-                        mamlElementType = new CaptionElement(element);
+                        caption = element.Value;
                         break;
                     case ElementType.Image:
-                        mamlElementType = new ImageElement(element, mediaLink.RequiresIndentation);
+                        mamlElementType = new ImageElement(element, caption, mediaLink.RequiresIndentation);
+                        caption = null;
                         break;
                     default:
                         throw new NotSupportedException($"Element type {type} not supported for <MediaLink>.");
@@ -470,6 +472,7 @@ namespace SandcastleToDocFx.Visitors
             }
         }
 
+        
         public override void Visit(ImageElement image)
         {
             var imageReference = image.Element.Attributes().SingleOrDefault(a => a.Name.LocalName == "href")?.Value;
@@ -480,7 +483,7 @@ namespace SandcastleToDocFx.Visitors
 
             var imageFilePath = Utilities.GetRelativePathOfReferencedImage(imageReference, "png");
 
-            MarkdownWriter.AppendImage(imageFilePath, image.RequiresIndentation);
+            MarkdownWriter.AppendImage(imageFilePath, image.Caption, image.RequiresIndentation);
         }
 
         public override void Visit(TableHeaderElement tableHeader)

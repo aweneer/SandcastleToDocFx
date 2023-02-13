@@ -462,8 +462,10 @@ namespace SandcastleToDocFx.Sandcastle
 
     public class ImageElement : MamlElement
     {
-        public ImageElement(XElement element, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
+        public string? Caption { get; set; }
+        public ImageElement(XElement element, string? caption, bool requiresIndentation = false, bool shouldLineBreak = false) : base(element, requiresIndentation,  shouldLineBreak)
         {
+            this.Caption = caption;
         }
 
         public override void Accept(Visitor visitor)

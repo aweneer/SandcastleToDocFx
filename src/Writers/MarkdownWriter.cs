@@ -223,6 +223,16 @@ namespace SandcastleToDocFx.Writers
             StringBuilder.AppendLine($"uid: {uid}");
         }
 
+        public static void AppendMetadata(string metadataName, string metadataValue)
+        {
+            StringBuilder.AppendLine($"{metadataName}: \"{metadataValue}\"");
+        }
+
+        public static void AppendMetadata(string metadataName, string[] metadataValue)
+        {
+            StringBuilder.AppendLine($"{metadataName}: \"{string.Join(";", metadataValue.ToArray())}\"");
+        }
+        
         public static void AppendMetadataTitle(string title)
         {
             StringBuilder.AppendLine($"title: \"{title}\"");
@@ -237,10 +247,11 @@ namespace SandcastleToDocFx.Writers
 
         public static void AppendImage(
             string filePath,
+            string? caption,
             bool requiresIndentation = false)
         {
             var indent = requiresIndentation ? Indentation : null;
-            StringBuilder.AppendLine($"{indent}![{filePath}]({filePath})");
+            StringBuilder.AppendLine($"{indent}![{caption?.Trim() ?? ""}]({filePath})");
         }
 
         public static string Indentation { get; set; } = "    ";
