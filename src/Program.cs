@@ -3,12 +3,9 @@ using SandcastleToDocFx.Visitors;
 using SandcastleToDocFx.Writers;
 using Spectre.Cli;
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace SandcastleToDocFx
@@ -20,6 +17,8 @@ namespace SandcastleToDocFx
         public static XElement? CurrentConceptualFileRootElement;
         public static FileInfo? CurrentConceptualFile;
         public static DirectoryInfo? ExportDestinationDirectory;
+        public static DirectoryInfo? SdkDirectory;
+
         static void Main(string[] args)
         {
             // TODO: Finish commandline app.
@@ -48,6 +47,15 @@ namespace SandcastleToDocFx
 
             Directory.CreateDirectory(ExportDestinationDirectory.FullName);
             
+            SdkDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "SandCastleToDocFx_Export",
+                "sdk"));
+            
+            if (Directory.Exists(SdkDirectory.FullName))
+            {
+                Directory.Delete(SdkDirectory.FullName, true);
+            }
+
+            Directory.CreateDirectory(SdkDirectory.FullName);
             
             var destinationDirectoryInfo = new DirectoryInfo(ExportDestinationDirectory.FullName);
             var sourceDirectoryInfo = new DirectoryInfo("C:\\src\\PostSharp.Documentation\\Source");
@@ -77,6 +85,93 @@ namespace SandcastleToDocFx
             Console.WriteLine($"Exporting .shfbproj file '{shfbProjectFile}' to .md.");
             TransformSandcastleHelpFileBuilderProject(shfbProjectFile);
             
+            
+            GenerateSdkDocumentationFiles();
+        }
+
+        public static void GenerateSdkToc(string[] namespaces)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine("items:");
+            stringBuilder.AppendLine("- name: PostSharp SDK Documentation");
+            stringBuilder.AppendLine("  topicUid: index");
+            stringBuilder.AppendLine("  items:");
+            foreach (var ns in namespaces)
+            {
+                stringBuilder.AppendLine($"    - name: {ns}");
+                stringBuilder.AppendLine($"      topicUid: {ns}");
+            }
+
+            File.WriteAllText(Path.Combine(SdkDirectory.FullName, "toc.yml"), stringBuilder.ToString());
+        }
+
+        public static void GenerateSdkTitlePage(string[] namespaces)
+        {
+            var sdkTitle = "PostSharp SDK documentation";
+            MarkdownWriter.StartMarkdownMetadata();
+            MarkdownWriter.AppendMetadataUid("index");
+            MarkdownWriter.AppendMetadataTitle(sdkTitle);
+            MarkdownWriter.AppendMetadata("product", "postsharp");
+            MarkdownWriter.AppendMetadata("categories", new[] { "PostSharp", "AOP", "PostSharp API", "SDK" });
+            MarkdownWriter.EndMarkdownMetadata();
+            
+            MarkdownWriter.WriteHeading1(sdkTitle);
+            MarkdownWriter.WriteHeading2("Namespaces");
+            MarkdownWriter.AppendTableHeader(new[]{"Namespace", "Description"});
+
+            foreach (var ns in namespaces)
+            {
+                MarkdownWriter.StartTableRow();
+                MarkdownWriter.AppendCodeEntityReference(ns);
+                MarkdownWriter.AddTableRowSeparator();
+                MarkdownWriter.Append($"This article documents the {ns} namespace.");
+                MarkdownWriter.EndTableRow();
+            }
+
+            MarkdownWriter.WriteFile(SdkDirectory.FullName, "index");
+        }
+
+        private static void GenerateSdkDocumentationFiles()
+        {
+            var sdkNamespaces = new[]
+            {
+                "PostSharp.Extensibility",
+                "PostSharp.Platform.NetFramework",
+                "PostSharp.Sdk.AspectInfrastructure",
+                "PostSharp.Sdk.AspectInfrastructure.Dependencies",
+                "PostSharp.Sdk.AspectWeaver",
+                "PostSharp.Sdk.AspectWeaver.AspectWeavers",
+                "PostSharp.Sdk.AspectWeaver.Dependencies",
+                "PostSharp.Sdk.AspectWeaver.MethodBodyWrapping",
+                "PostSharp.Sdk.AspectWeaver.Transformations",
+                "PostSharp.Sdk.Binary",
+                "PostSharp.Sdk.CodeModel",
+                "PostSharp.Sdk.CodeModel.Binding",
+                "PostSharp.Sdk.CodeModel.Collections",
+                "PostSharp.Sdk.CodeModel.Helpers",
+                "PostSharp.Sdk.CodeModel.MarshalTypes",
+                "PostSharp.Sdk.CodeModel.SerializationTypes",
+                "PostSharp.Sdk.CodeModel.Syntax",
+                "PostSharp.Sdk.CodeModel.TypeSignatures",
+                "PostSharp.Sdk.CodeWeaver",
+                "PostSharp.Sdk.Extensibility",
+                "PostSharp.Sdk.Extensibility.Compilers",
+                "PostSharp.Sdk.Extensibility.Configuration",
+                "PostSharp.Sdk.Extensibility.Licensing",
+                "PostSharp.Sdk.Extensibility.Platforms",
+                "PostSharp.Sdk.Extensibility.Serialization",
+                "PostSharp.Sdk.Extensibility.SourceParser",
+                "PostSharp.Sdk.Extensibility.SymbolLocationDb",
+                "PostSharp.Sdk.Extensibility.Tasks",
+                "PostSharp.Sdk.Extensibility.Tasks.CountLinesOfCode",
+                "PostSharp.Sdk.Utilities",
+                "PostSharp.Sdk.WeavingSymbols",
+                "PostSharp.Sdk.WeavingSymbols.Collections"
+            };
+
+            GenerateSdkTitlePage(sdkNamespaces);
+            GenerateSdkToc(sdkNamespaces);
         }
 
         public static void TransformSandcastleHelpFileBuilderProject(string projectFile)
@@ -111,7 +206,7 @@ namespace SandcastleToDocFx
                 MarkdownWriter.EndTableRow();
             }
             
-            MarkdownWriter.WriteFile(ExportDestinationDirectory.FullName, "Project_PostSharp");
+            MarkdownWriter.WriteFile(ExportDestinationDirectory.FullName, "api");
         }
 
         public static void TransformMamlFilesToMarkdown(MamlVisitor visitor, DirectoryInfo sourceDirectory, string destinationDirectory)
@@ -121,10 +216,10 @@ namespace SandcastleToDocFx
                 Directory.CreateDirectory(destinationDirectory);
             }
             
-            var filesToCopy = sourceDirectory.GetFiles("*.png", SearchOption.TopDirectoryOnly);
+            var imagesToCopy = sourceDirectory.GetFiles("*.png", SearchOption.TopDirectoryOnly);
 
             // Copy all required files.
-            foreach (var file in filesToCopy)
+            foreach (var file in imagesToCopy)
             {
                 var targetFilePath = Path.Combine(destinationDirectory, file.Name);
                 file.CopyTo(targetFilePath);
